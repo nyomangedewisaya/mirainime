@@ -1,0 +1,29 @@
+---
+export const prerender = false;
+
+import AppLayout from '../../../layouts/AppLayout.astro';
+import Navbar from '../../../components/layout/Navbar.astro';
+import Footer from '../../../components/layout/Footer.astro';
+import SkeletonPerson from '../../../components/skeleton/SkeletonPerson.astro'; 
+import CharacterContent from '../../../components/content/CharacterContent.astro';
+
+const { id } = Astro.params;
+---
+
+<AppLayout>
+  <Navbar />
+  
+  <main class="container mx-auto px-4 lg:px-8 py-4 md:py-6 min-h-screen">
+    
+    <CharacterContent server:defer id={id as string}>
+      
+      <div slot="fallback" class="w-full">
+        <SkeletonPerson />
+      </div>
+
+    </CharacterContent>
+
+  </main>
+
+  <Footer />
+</AppLayout>

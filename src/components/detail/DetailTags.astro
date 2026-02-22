@@ -1,0 +1,19 @@
+---
+const { tags } = Astro.props;
+---
+
+<section class="container mx-auto px-4 lg:px-8 mb-16">
+  <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-6">Tags</h3>
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+    {tags?.map((tag: any) => (
+      <div class="group flex items-center justify-between p-3 md:p-4 bg-white dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800/50 rounded-xl shadow-sm hover:shadow-md hover:border-primary-200 dark:hover:border-primary-900/50 transition-all duration-200">
+        <span class="text-xs md:text-sm font-medium text-slate-700 dark:text-slate-300 truncate pr-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+          {tag.name}
+        </span>
+        <span class="text-xs font-bold text-slate-400 dark:text-slate-500 shrink-0">
+          {tag.rank}%
+        </span>
+      </div>
+    ))}
+  </div>
+</section>

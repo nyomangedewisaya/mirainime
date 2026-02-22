@@ -1,0 +1,56 @@
+---
+import { formatAniListDate, formatCountdown } from '../../lib/utils';
+const { anime } = Astro.props;
+
+const isReleasing = anime.status === 'RELEASING';
+const studios = anime.studios?.edges?.filter((e: any) => e.isMain).map((e: any) => e.node.name).join(', ') || 'Unknown';
+const producers = anime.studios?.edges?.filter((e: any) => !e.isMain).map((e: any) => e.node.name).join(', ') || 'None';
+
+const infoItems = [
+  { label: 'Format', value: anime.format?.replace('_', ' ') || 'Unknown' },
+  { label: 'Episodes', value: anime.episodes || 'TBA' },
+  { label: 'Episode Duration', value: anime.duration ? `${anime.duration} mins` : 'TBA' },
+  { label: 'Status', value: isReleasing ? 'Ongoing' : (anime.status === 'FINISHED' ? 'Finished' : 'Upcoming') },
+  { label: 'Start Date', value: formatAniListDate(anime.startDate) },
+  { label: 'End Date', value: formatAniListDate(anime.endDate) },
+  { label: 'Season', value: anime.season ? `${anime.season} ${anime.seasonYear}` : 'TBA' },
+  { label: 'Average Score', value: anime.averageScore ? `${anime.averageScore}%` : 'N/A' },
+  { label: 'Mean Score', value: anime.meanScore ? `${anime.meanScore}%` : 'N/A' },
+  { label: 'Popularity', value: anime.popularity?.toLocaleString() || '0' },
+  { label: 'Favorites', value: anime.favourites?.toLocaleString() || '0' },
+  { label: 'Studios', value: studios },
+  { label: 'Producers', value: producers },
+  { label: 'Source', value: anime.source?.replace('_', ' ') || 'Unknown' },
+  { label: 'Romaji', value: anime.title.romaji },
+  { label: 'English', value: anime.title.english || 'N/A' },
+  { label: 'Native', value: anime.title.native || 'N/A' },
+];
+---
+
+<section class="container mx-auto px-4 lg:px-8 mb-16">
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+    
+    {isReleasing && anime.nextAiringEpisode && (
+      <div class="col-span-2 md:col-span-1 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 p-4 md:p-5 rounded-2xl shadow-sm flex flex-col justify-center">
+        <span class="text-[10px] md:text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
+          Airing &bull; Ep {anime.nextAiringEpisode.episode}
+        </span>
+        <span class="text-lg md:text-xl font-extrabold text-emerald-700 dark:text-emerald-300 truncate">
+          {formatCountdown(anime.nextAiringEpisode.timeUntilAiring)}
+        </span>
+      </div>
+    )}
+
+    {infoItems.map(item => (
+      <div class="bg-white dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800/50 p-4 md:p-5 rounded-2xl shadow-sm flex flex-col justify-center">
+        <span class="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1 truncate w-full">
+          {item.label}
+        </span>
+        <span class="text-sm md:text-base font-medium text-slate-800 dark:text-slate-200 truncate w-full capitalize">
+          {item.value}
+        </span>
+      </div>
+    ))}
+
+  </div>
+</section>

@@ -1,0 +1,180 @@
+---
+import { fetchFromAniList } from '../../lib/anilist';
+import { Icon } from 'astro-icon/components';
+import { formatDateOfBirth, slugify, parseAniListMarkdown } from '../../lib/utils';
+
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+
+const SEIYUU_QUERY = `
+  query ($id: Int) {
+    Staff(id: $id) {
+      id
+      name { full native alternative }
+      image { large }
+      description(asHtml: false)
+      gender
+      age
+      homeTown
+      dateOfBirth { year month day }
+      bloodType
+      favourites
+      primaryOccupations
+      characters(sort: FAVOURITES_DESC, page: 1, perPage: 24) {
+        edges {
+          node {
+            id
+            name { full }
+            image { large }
+          }
+          media {
+            id
+            title { romaji }
+          }
+        }
+      }
+    }
+  }
+`;
+
+const data = await fetchFromAniList({ 
+  query: SEIYUU_QUERY, 
+  variables: { id: parseInt(id, 10) } 
+});
+
+const staff = data?.Staff;
+
+if (!staff) {
+  return Astro.redirect('/404');
+}
+
+const parsedDescription = staff.description ? parseAniListMarkdown(staff.description) : null;
+const dob = formatDateOfBirth(staff.dateOfBirth);
+const characterEdges = staff.characters?.edges || [];
+---
+
+<div class="w-full fade-in-swap">
+  
+  <button onclick="window.history.back()" class="inline-flex items-center gap-2 px-4 py-2 mb-8 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-full transition-all shadow-sm cursor-pointer w-fit group">
+    <Icon name="lucide:arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-300" />
+    Back
+  </button>
+
+  <div class="flex flex-col md:flex-row gap-8 md:gap-12">
+    
+    <div class="flex md:hidden flex-col gap-3 w-full items-center text-center">
+      <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+        {staff.name.full}
+      </h1>
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-semibold border border-red-100 dark:border-red-800/30">
+        <Icon name="lucide:heart" class="w-4 h-4 fill-current" />
+        <span>{staff.favourites.toLocaleString()} Favorites</span>
+      </div>
+    </div>
+
+    <div class="w-full md:w-72 shrink-0 flex flex-col gap-6 items-center md:items-stretch">
+      <div class="w-48 sm:w-56 md:w-full aspect-3/4 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/50 shrink-0">
+        {staff.image?.large ? (
+          <img src={staff.image.large} alt={staff.name.full} class="w-full h-full object-cover" />
+        ) : (
+          <div class="w-full h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
+            <Icon name="lucide:user" class="w-16 h-16 mb-2 opacity-50" />
+            <span class="text-sm font-medium">No Image</span>
+          </div>
+        )}
+      </div>
+
+      <div class="w-full bg-white dark:bg-slate-800/40 p-4 md:p-5 rounded-2xl border border-slate-200 dark:border-slate-700/50 grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-col gap-4 shadow-sm text-center md:text-left">
+        {staff.name.native && (
+          <div><p class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Native Name</p><p class="text-sm text-slate-900 dark:text-white font-medium">{staff.name.native}</p></div>
+        )}
+        {staff.name.alternative && staff.name.alternative.length > 0 && (
+          <div><p class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Also Known As</p><p class="text-sm text-slate-900 dark:text-white">{staff.name.alternative.join(', ')}</p></div>
+        )}
+        {staff.primaryOccupations && staff.primaryOccupations.length > 0 && (
+          <div><p class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Occupations</p><p class="text-sm text-slate-900 dark:text-white">{staff.primaryOccupations.join(', ')}</p></div>
+        )}
+        {staff.gender && (
+          <div><p class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Gender</p><p class="text-sm text-slate-900 dark:text-white capitalize">{staff.gender}</p></div>
+        )}
+        {dob && (
+          <div><p class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Birthday</p><p class="text-sm text-slate-900 dark:text-white">{dob}</p></div>
+        )}
+        {staff.age && (
+          <div><p class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Age</p><p class="text-sm text-slate-900 dark:text-white">{staff.age}</p></div>
+        )}
+        {staff.homeTown && (
+          <div><p class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Hometown</p><p class="text-sm text-slate-900 dark:text-white">{staff.homeTown}</p></div>
+        )}
+        {staff.bloodType && (
+          <div><p class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Blood Type</p><p class="text-sm text-slate-900 dark:text-white">{staff.bloodType}</p></div>
+        )}
+      </div>
+    </div>
+
+    <div class="flex-1 flex flex-col items-center text-center md:items-start md:text-left gap-8">
+      
+      <div class="hidden md:flex flex-col gap-3 w-full items-center md:items-start">
+        <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          {staff.name.full}
+        </h1>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-semibold border border-red-100 dark:border-red-800/30">
+          <Icon name="lucide:heart" class="w-4 h-4 fill-current" />
+          <span>{staff.favourites.toLocaleString()} Favorites</span>
+        </div>
+      </div>
+
+      {parsedDescription && (
+        <div class="w-full">
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2 justify-center md:justify-start">
+            <Icon name="lucide:info" class="w-5 h-5 text-primary-500" /> Biography
+          </h2>
+          <div class="text-slate-600 dark:text-slate-300 text-sm md:text-base max-w-4xl" set:html={parsedDescription} />
+        </div>
+      )}
+
+      {characterEdges.length > 0 && (
+        <div class="w-full mt-6">
+          <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2 justify-center md:justify-start border-b border-slate-200 dark:border-slate-800 pb-3">
+            <Icon name="lucide:mic" class="w-5 h-5 text-indigo-500" /> Voiced Characters
+          </h2>
+          
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5 w-full">
+            {characterEdges.map((edge: any) => {
+              const char = edge.node;
+              const mediaTitle = edge.media && edge.media.length > 0 ? edge.media[0].title.romaji : 'Various Anime';
+              
+              return (
+                <a href={`/character/${char.id}/${slugify(char.name.full)}`} class="group flex flex-col gap-2 cursor-pointer w-full">
+                  <div class="w-full aspect-3/4 rounded-xl shadow-sm overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 relative">
+                    {char.image?.large ? (
+                      <img src={char.image.large} alt={char.name.full} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                    ) : (
+                      <div class="w-full h-full flex items-center justify-center text-slate-400">
+                         <Icon name="lucide:user" class="w-10 h-10 opacity-50" />
+                      </div>
+                    )}
+                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 dark:group-hover:bg-black/30 transition-colors duration-300"></div>
+                  </div>
+                  
+                  <div class="flex flex-col px-1">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-white line-clamp-1 group-hover:text-primary-500 transition-colors">
+                      {char.name.full}
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
+                      {mediaTitle}
+                    </p>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+    </div>
+  </div>
+</div>

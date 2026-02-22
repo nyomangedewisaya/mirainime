@@ -1,0 +1,416 @@
+---
+import { Icon } from 'astro-icon/components';
+import { getCachedFilters } from '../../lib/anilist';
+
+interface Props {
+  defaultSeason?: string;
+  defaultYear?: string | number;
+  defaultStatus?: string;
+}
+
+const { defaultSeason, defaultYear, defaultStatus } = Astro.props;
+
+const filtersData = await getCachedFilters();
+const genres = filtersData?.genres?.filter((g: string) => g !== 'Hentai') || [];
+const tags = filtersData?.tags?.map((t: any) => t.name) || [];
+
+const seasons = ["WINTER", "SPRING", "SUMMER", "FALL"];
+const formats = ["TV", "MOVIE", "OVA", "ONA", "SPECIAL", "TV_SHORT", "MUSIC"];
+const statuses = ["RELEASING", "FINISHED", "NOT_YET_RELEASED", "CANCELLED", "HIATUS"];
+const sources = ["ORIGINAL", "MANGA", "LIGHT_NOVEL", "VISUAL_NOVEL", "WEB_NOVEL", "NOVEL", "VIDEO_GAME", "COMIC", "GAME", "DOUJINSHI"];
+const countries = [{ code: "JP", name: "Japan" }, { code: "CN", name: "China" }, { code: "KR", name: "South Korea" }, { code: "TW", name: "Taiwan" }];
+const streaming = ["Crunchyroll", "Netflix", "Hulu", "Bilibili", "Amazon Prime", "HIDIVE", "iQIYI", "WeTV", "Star+", "Vimeo"];
+
+const currentY = new Date().getFullYear();
+const years = Array.from({length: (currentY + 2) - 1990}, (_, i) => currentY + 1 - i).map(String);
+
+const searchParams = Astro.url.searchParams;
+const pSearch = searchParams.get('search') || '';
+const pGenre = searchParams.get('genre') || '';
+const pFormat = searchParams.get('format') || '';
+const pTags = searchParams.get('tags') ? searchParams.get('tags')!.split(',') : [];
+
+const pSeason = searchParams.get('season') || defaultSeason || '';
+const pYear = searchParams.get('year') || (defaultYear ? defaultYear.toString() : '');
+const pStatus = searchParams.get('status') || defaultStatus || '';
+
+const pSource = searchParams.get('source') || '';
+const pCountry = searchParams.get('countryOfOrigin') || '';
+const pStreaming = searchParams.get('streaming') || '';
+---
+
+<style>
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #334155; }
+</style>
+
+<div class="sticky top-16 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 transition-colors shadow-sm">
+  <div class="container mx-auto px-4 lg:px-8">
+    
+    <button id="mobile-filter-toggle" class="w-full flex md:hidden items-center justify-between py-4 text-slate-800 dark:text-slate-200 font-semibold focus:outline-none cursor-pointer">
+      <div class="flex items-center gap-2">
+        <Icon name="lucide:sliders-horizontal" class="w-5 h-5 text-primary-500" />
+        <span>Filters & Sorting</span>
+      </div>
+      <Icon name="lucide:chevron-down" id="mobile-filter-icon" class="w-5 h-5 text-slate-400 transition-transform duration-300 ease-in-out" />
+    </button>
+
+    <div id="filter-content-wrapper" class="max-h-0 opacity-0 md:max-h-250 md:opacity-100 overflow-hidden md:overflow-visible transition-all duration-300 ease-in-out">
+      
+      <div class="flex flex-col lg:flex-row items-center gap-3 py-4 md:py-4 border-t border-slate-200/80 dark:border-slate-800/80 md:border-none">
+        
+        <div class="relative w-full lg:w-72 shrink-0 group">
+          <Icon name="lucide:search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
+          <input type="text" id="filter-search" value={pSearch} placeholder="Search anime..." class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 rounded-xl py-2 pl-10 pr-4 text-sm text-slate-900 dark:text-white outline-none transition-all duration-300 shadow-sm" />
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full" id="top-dropdowns">
+          <div id="wrapper-genre" data-id="genre" data-label="Any Genre" data-options={JSON.stringify(genres)} data-selected={pGenre}></div>
+          <div id="wrapper-season" data-id="season" data-label="Any Season" data-options={JSON.stringify(seasons)} data-selected={pSeason}></div>
+          <div id="wrapper-year" data-id="year" data-label="Any Year" data-options={JSON.stringify(years)} data-selected={pYear}></div>
+          <div id="wrapper-format" data-id="format" data-label="Any Format" data-options={JSON.stringify(formats)} data-selected={pFormat}></div>
+        </div>
+
+        <button id="btn-advanced" class="w-full lg:w-auto shrink-0 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-semibold transition-all shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 hover:border-primary-400 cursor-pointer">
+          <Icon name="lucide:sliders-horizontal" class="w-4 h-4" />
+          Advanced
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="advanced-modal" class="fixed inset-0 z-100 hidden items-center justify-center pointer-events-none">
+  <div id="modal-backdrop" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-auto"></div>
+  
+  <div id="modal-panel" class="relative bg-white dark:bg-slate-900 w-[95%] max-w-4xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col transform scale-95 opacity-0 transition-all duration-300 pointer-events-auto border border-slate-200 dark:border-slate-800 overflow-hidden">
+    
+    <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/20">
+      <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <Icon name="lucide:settings-2" class="w-5 h-5 text-primary-500" /> Advanced Filters
+      </h2>
+      <button id="btn-close-modal" class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer">
+        <Icon name="lucide:x" class="w-5 h-5" />
+      </button>
+    </div>
+
+    <div class="p-5 md:p-6 overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-8">
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="adv-dropdowns">
+        <div id="wrapper-status" data-id="status" data-label="Airing Status" data-options={JSON.stringify(statuses)} data-selected={pStatus}></div>
+        <div id="wrapper-source" data-id="source" data-label="Source Material" data-options={JSON.stringify(sources)} data-selected={pSource}></div>
+        <div id="wrapper-country" data-id="countryOfOrigin" data-label="Country of Origin" data-options={JSON.stringify(countries.map(c => c.code))} data-labels={JSON.stringify(countries.map(c => c.name))} data-selected={pCountry}></div>
+        <div id="wrapper-streaming" data-id="streaming" data-label="Streaming Platform" data-options={JSON.stringify(streaming)} data-selected={pStreaming}></div>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Numeric Ranges</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-medium text-slate-600 dark:text-slate-400">Year Range</label>
+            <div class="flex items-center gap-2">
+              <input type="number" id="rng-year-min" placeholder="1990" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white" />
+              <span class="text-slate-400">-</span>
+              <input type="number" id="rng-year-max" placeholder={`${currentY + 1}`} class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white" />
+            </div>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-medium text-slate-600 dark:text-slate-400">Episodes</label>
+            <div class="flex items-center gap-2">
+              <input type="number" id="rng-ep-min" placeholder="1" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white" />
+              <span class="text-slate-400">-</span>
+              <input type="number" id="rng-ep-max" placeholder="200" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white" />
+            </div>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-medium text-slate-600 dark:text-slate-400">Duration (mins)</label>
+            <div class="flex items-center gap-2">
+              <input type="number" id="rng-dur-min" placeholder="5" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white" />
+              <span class="text-slate-400">-</span>
+              <input type="number" id="rng-dur-max" placeholder="170" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Advanced Tags</h3>
+        <div class="flex flex-wrap gap-2" id="tags-container" data-initial={pTags.join(',')}>
+          {tags.map((tag: string) => (
+            <button class="adv-tag px-3 py-1.5 rounded-full text-xs font-medium border transition-colors duration-200 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-primary-400 data-[active=true]:bg-primary-500 data-[active=true]:border-primary-500 data-[active=true]:text-white cursor-pointer" data-val={tag}>
+              {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+
+    </div>
+
+    <div class="p-5 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 bg-slate-50/50 dark:bg-slate-800/20">
+      <button id="btn-reset" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer">
+        Reset
+      </button>
+      <button id="btn-apply" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-primary-600 hover:bg-primary-500 shadow-md shadow-primary-500/20 transition-all cursor-pointer">
+        Apply Filters
+      </button>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  const initFilterBar = () => {
+    const toggleBtn = document.getElementById('mobile-filter-toggle');
+    const contentWrapper = document.getElementById('filter-content-wrapper');
+    const icon = document.getElementById('mobile-filter-icon');
+    
+    if (toggleBtn && contentWrapper && icon) {
+      toggleBtn.onclick = () => {
+        const isClosed = contentWrapper.classList.contains('max-h-0');
+        if (isClosed) {
+          contentWrapper.classList.remove('max-h-0', 'opacity-0');
+          contentWrapper.classList.add('max-h-[1000px]', 'opacity-100');
+          icon.classList.add('rotate-180');
+          
+          setTimeout(() => {
+            contentWrapper.classList.remove('overflow-hidden');
+            contentWrapper.classList.add('overflow-visible');
+          }, 300);
+          
+        } else {
+          contentWrapper.classList.remove('overflow-visible');
+          contentWrapper.classList.add('overflow-hidden');
+          contentWrapper.classList.add('max-h-0', 'opacity-0');
+          contentWrapper.classList.remove('max-h-[1000px]', 'opacity-100');
+          icon.classList.remove('rotate-180');
+        }
+      };
+    }
+    
+    const updateURL = (paramsObj) => {
+      const url = new URL(window.location.href);
+      Object.keys(paramsObj).forEach(key => {
+        if (paramsObj[key]) url.searchParams.set(key, paramsObj[key]);
+        else url.searchParams.delete(key);
+      });
+      url.searchParams.delete('page'); 
+      window.location.assign(url.toString());
+    };
+
+    const getParam = (k) => new URLSearchParams(window.location.search).get(k) || '';
+
+    const buildCustomSelect = (wrapperId, isAutoSync) => {
+      const wrapper = document.getElementById(wrapperId);
+      if (!wrapper || wrapper.innerHTML.trim() !== '') return; 
+      
+      const id = wrapper.dataset.id;
+      const label = wrapper.dataset.label;
+      const options = JSON.parse(wrapper.dataset.options);
+      const labels = wrapper.dataset.labels ? JSON.parse(wrapper.dataset.labels) : options;
+      let selectedVal = wrapper.dataset.selected || '';
+
+      let selectedText = label;
+      if (selectedVal) {
+        const idx = options.indexOf(selectedVal);
+        selectedText = idx > -1 ? labels[idx] : selectedVal.replace(/_/g, ' ');
+      }
+
+      wrapper.innerHTML = `
+        <div class="relative w-full custom-select-container" data-id="${id}" data-val="${selectedVal}">
+          <button class="select-btn w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:border-primary-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 dark:text-slate-200 font-medium flex justify-between items-center transition-all shadow-sm cursor-pointer">
+            <span class="truncate pr-2">${selectedText}</span>
+            <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+          <div class="select-dropdown absolute top-[calc(100%+0.5rem)] left-0 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 hidden flex-col overflow-hidden transform opacity-0 scale-95 transition-all duration-200 origin-top">
+            <div class="p-2 border-b border-slate-100 dark:border-slate-700">
+              <input type="text" placeholder="Search..." class="search-opt w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 outline-none focus:border-primary-500" />
+            </div>
+            <ul class="max-h-48 overflow-y-auto custom-scrollbar p-1">
+              <li class="opt-item px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg cursor-pointer transition-colors ${!selectedVal ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-semibold' : ''}" data-val="">${label} (Clear)</li>
+              ${options.map((opt, i) => `
+                <li class="opt-item px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg cursor-pointer transition-colors ${selectedVal === opt ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-semibold' : ''}" data-val="${opt}">${labels[i].replace(/_/g, ' ')}</li>
+              `).join('')}
+            </ul>
+          </div>
+        </div>
+      `;
+
+      const container = wrapper.querySelector('.custom-select-container');
+      const btn = wrapper.querySelector('.select-btn');
+      const dropdown = wrapper.querySelector('.select-dropdown');
+      const search = wrapper.querySelector('.search-opt');
+      const items = wrapper.querySelectorAll('.opt-item');
+      const span = btn.querySelector('span');
+
+      const toggleDropdown = (show) => {
+        if (show) {
+          document.querySelectorAll('.select-dropdown').forEach(d => { 
+            d.classList.add('hidden'); 
+            d.classList.remove('opacity-100', 'scale-100'); 
+          });
+          dropdown.classList.remove('hidden');
+          setTimeout(() => dropdown.classList.add('opacity-100', 'scale-100', 'flex'), 10);
+          search.focus();
+        } else {
+          dropdown.classList.remove('opacity-100', 'scale-100');
+          setTimeout(() => dropdown.classList.add('hidden'), 200);
+          search.value = '';
+          items.forEach(item => item.style.display = 'block');
+        }
+      };
+
+      btn.addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        toggleDropdown(dropdown.classList.contains('hidden')); 
+      });
+      
+      search.addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        items.forEach(item => {
+          const text = item.innerText.toLowerCase();
+          if (item.dataset.val !== '') {
+            item.style.display = text.includes(val) ? 'block' : 'none';
+          }
+        });
+      });
+
+      items.forEach(item => {
+        item.addEventListener('click', () => {
+          const val = item.dataset.val;
+          const txt = item.innerText;
+          span.innerText = txt;
+          container.dataset.val = val;
+          toggleDropdown(false);
+          
+          items.forEach(i => i.classList.remove('bg-primary-50', 'dark:bg-primary-900/20', 'text-primary-600', 'dark:text-primary-400', 'font-semibold'));
+          item.classList.add('bg-primary-50', 'dark:bg-primary-900/20', 'text-primary-600', 'dark:text-primary-400', 'font-semibold');
+
+          if (isAutoSync) updateURL({ [id]: val });
+        });
+      });
+    };
+
+    ['genre', 'season', 'year', 'format'].forEach(id => buildCustomSelect(`wrapper-${id}`, true));
+    ['status', 'source', 'country', 'streaming'].forEach(id => buildCustomSelect(`wrapper-${id}`, false));
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.custom-select-container')) {
+        document.querySelectorAll('.select-dropdown').forEach(d => {
+           d.classList.remove('opacity-100', 'scale-100');
+           setTimeout(() => d.classList.add('hidden'), 200);
+        });
+      }
+    });
+
+    const searchEl = document.getElementById('filter-search');
+    if (searchEl) {
+      searchEl.addEventListener('input', (e) => {
+        clearTimeout(window._searchTimeout);
+        window._searchTimeout = setTimeout(() => updateURL({ search: e.target.value }), 500);
+      });
+    }
+
+    const modal = document.getElementById('advanced-modal');
+    const backdrop = document.getElementById('modal-backdrop');
+    const panel = document.getElementById('modal-panel');
+    
+    const toggleModal = (show) => {
+      if (show) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => {
+          backdrop.classList.add('opacity-100');
+          panel.classList.remove('opacity-0', 'scale-95');
+          panel.classList.add('opacity-100', 'scale-100');
+        }, 10);
+      } else {
+        backdrop.classList.remove('opacity-100');
+        panel.classList.remove('opacity-100', 'scale-100');
+        panel.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+        }, 300);
+      }
+    };
+
+    const btnAdv = document.getElementById('btn-advanced');
+    if (btnAdv) btnAdv.onclick = () => toggleModal(true);
+    
+    const btnClose = document.getElementById('btn-close-modal');
+    if (btnClose) btnClose.onclick = () => toggleModal(false);
+    
+    if (backdrop) backdrop.onclick = () => toggleModal(false);
+
+    const tagContainer = document.getElementById('tags-container');
+    if (tagContainer) {
+      let selectedTags = tagContainer.dataset.initial ? tagContainer.dataset.initial.split(',') : [];
+      document.querySelectorAll('.adv-tag').forEach(btn => {
+        const val = btn.dataset.val;
+        if (selectedTags.includes(val)) btn.setAttribute('data-active', 'true');
+        
+        btn.onclick = () => {
+          const isActive = btn.getAttribute('data-active') === 'true';
+          if (isActive) {
+            btn.removeAttribute('data-active');
+            selectedTags = selectedTags.filter(t => t !== val);
+          } else {
+            btn.setAttribute('data-active', 'true');
+            selectedTags.push(val);
+          }
+          window._currentTags = selectedTags;
+        };
+      });
+      window._currentTags = selectedTags; 
+    }
+
+    const setVal = (id, param, removeStr) => {
+      const el = document.getElementById(`rng-${id}`);
+      if (el) {
+        let val = getParam(param);
+        if (removeStr && val) val = val.replace(removeStr, '');
+        el.value = val;
+      }
+    };
+    setVal('year-min', 'startDate_greater', '0000');
+    setVal('year-max', 'startDate_lesser', '1232');
+    setVal('ep-min', 'episodes_greater', '');
+    setVal('ep-max', 'episodes_lesser', '');
+    setVal('dur-min', 'duration_greater', '');
+    setVal('dur-max', 'duration_lesser', '');
+
+    const btnApply = document.getElementById('btn-apply');
+    if (btnApply) {
+      btnApply.onclick = () => {
+        const getVal = (id) => {
+           const el = document.getElementById(`wrapper-${id}`);
+           return el ? (el.querySelector('.custom-select-container').dataset.val || '') : '';
+        };
+        const getNum = (id) => document.getElementById(`rng-${id}`).value || '';
+
+        updateURL({
+          status: getVal('status'),
+          source: getVal('source'),
+          countryOfOrigin: getVal('country'),
+          streaming: getVal('streaming'),
+          tags: window._currentTags ? window._currentTags.join(',') : '',
+          startDate_greater: getNum('year-min') ? getNum('year-min') + '0000' : '',
+          startDate_lesser: getNum('year-max') ? getNum('year-max') + '1232' : '',
+          episodes_greater: getNum('ep-min'),
+          episodes_lesser: getNum('ep-max'),
+          duration_greater: getNum('dur-min'),
+          duration_lesser: getNum('dur-max')
+        });
+      };
+    }
+
+    const btnReset = document.getElementById('btn-reset');
+    if (btnReset) {
+      btnReset.onclick = () => window.location.href = window.location.pathname;
+    }
+  };
+
+  initFilterBar();
+</script>

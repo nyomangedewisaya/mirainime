@@ -1,0 +1,119 @@
+---
+import { Icon } from 'astro-icon/components';
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="w-full bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200/60 dark:border-slate-800/60 mt-20 transition-colors duration-300">
+  <div class="container mx-auto px-4 lg:px-8 py-12 md:py-16 w-full">
+    
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
+      
+      <div class="flex flex-col">
+        <h4 class="text-xs font-bold tracking-wider uppercase text-slate-900 dark:text-slate-100 mb-6">
+          Explore
+        </h4>
+        <ul class="flex flex-col gap-3.5">
+          <li>
+            <a href="/explore" class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-all duration-300">
+              Anime
+            </a>
+          </li>
+          <li>
+            <a href="#" class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-all duration-300">
+              Manga
+            </a>
+          </li>
+          <li>
+            <a href="#" class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-all duration-300">
+              Manhwa
+            </a>
+          </li>
+          <li>
+            <a href="#" class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-all duration-300">
+              Manhua
+            </a>
+          </li>
+          <li>
+            <a href="#" class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-all duration-300">
+              Light Novel
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="flex flex-col">
+        <h4 class="text-xs font-bold tracking-wider uppercase text-slate-900 dark:text-slate-100 mb-6">
+          Discover
+        </h4>
+        <ul class="flex flex-col gap-3.5">
+          {['Trending Now', 'Top 100 Anime', 'Upcoming Season', 'Seasonal Anime'].map((item) => (
+            <li>
+              <a href="#" class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-all duration-300">
+                {item}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="flex flex-col">
+        <h4 class="text-xs font-bold tracking-wider uppercase text-slate-900 dark:text-slate-100 mb-6">
+          Resources
+        </h4>
+        <ul class="flex flex-col gap-3.5">
+          {['Airing Schedule', 'Anime Genres', 'Studios', 'Latest News'].map((item) => (
+            <li>
+              <a href="#" class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-all duration-300">
+                {item}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="flex flex-col">
+        <h4 class="text-xs font-bold tracking-wider uppercase text-slate-900 dark:text-slate-100 mb-6">
+          Company
+        </h4>
+        <ul class="flex flex-col gap-3.5">
+          {['About Us', 'Contact', 'Privacy Policy', 'Terms of Service'].map((item) => (
+            <li>
+              <a href="#" class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-all duration-300">
+                {item}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-6">
+      
+      <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
+        <a href="/" class="flex items-center gap-2 font-bold text-lg tracking-tight text-slate-900 dark:text-white">
+          <span class="w-6 h-6 rounded bg-linear-to-br from-primary-500 to-indigo-600 text-white flex items-center justify-center text-[10px] font-black shadow-sm">M</span>
+          Mirai Nime
+        </a>
+        <span class="hidden sm:block text-slate-300 dark:text-slate-700">|</span>
+        <span class="text-sm text-slate-500 dark:text-slate-400">
+          &copy; {currentYear} All rights reserved.
+        </span>
+      </div>
+
+      <div class="flex items-center gap-5">
+        <a href="#" aria-label="GitHub" class="text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:-translate-y-1 transition-all duration-300">
+          <Icon name="lucide:github" class="w-4 h-4 md:w-5 md:h-5" />
+        </a>
+        <a href="#" aria-label="Twitter / X" class="text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:-translate-y-1 transition-all duration-300">
+          <Icon name="lucide:twitter" class="w-4 h-4 md:w-5 md:h-5" />
+        </a>
+        <a href="#" aria-label="Instagram" class="text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:-translate-y-1 transition-all duration-300">
+          <Icon name="lucide:instagram" class="w-4 h-4 md:w-5 md:h-5" />
+        </a>
+      </div>
+
+    </div>
+  </div>
+</footer>

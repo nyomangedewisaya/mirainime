@@ -1,0 +1,82 @@
+---
+import DetailHero from '../detail/DetailHero.astro';
+import DetailInfoGrid from '../detail/DetailInfoGrid.astro';
+import DetailTags from '../detail/DetailTags.astro';
+import DetailCharacters from '../detail/DetailCharacters.astro';
+import { fetchFromAniList } from '../../lib/anilist';
+
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+
+const ANIME_DETAIL_QUERY = `
+  query ($id: Int) {
+    Media(id: $id, type: ANIME) {
+      id
+      title { romaji english native }
+      description(asHtml: false)
+      bannerImage
+      coverImage { extraLarge large medium }
+      genres
+      source
+      format
+      episodes
+      duration
+      status
+      startDate { year month day }
+      endDate { year month day }
+      season
+      seasonYear
+      averageScore
+      meanScore
+      popularity
+      favourites
+      rankings { rank type context year season allTime }
+      studios { edges { isMain node { name } } }
+      tags { name rank }
+      nextAiringEpisode { episode timeUntilAiring }
+      characters(sort: ROLE) {
+        edges {
+          role
+          node { 
+            id   
+            name { full } 
+            image { medium } 
+          }
+          voiceActors(language: JAPANESE) { 
+            id   
+            name { full } 
+            image { medium } 
+          }
+        }
+      }
+    }
+  }
+`;
+
+const data = await fetchFromAniList({ 
+  query: ANIME_DETAIL_QUERY, 
+  variables: { id: parseInt(id, 10) } 
+});
+
+const anime = data?.Media;
+
+if (!anime) {
+  return Astro.redirect('/404');
+}
+---
+
+<div class="w-full flex flex-col fade-in-swap">
+  <DetailHero anime={anime} />
+  <DetailInfoGrid anime={anime} />
+  
+  {anime.tags && anime.tags.length > 0 && (
+    <DetailTags tags={anime.tags} />
+  )}
+  
+  {anime.characters && anime.characters.edges.length > 0 && (
+    <DetailCharacters characters={anime.characters} />
+  )}
+</div>

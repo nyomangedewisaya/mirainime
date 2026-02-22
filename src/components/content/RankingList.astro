@@ -1,0 +1,58 @@
+---
+import RankingItem from '../cards/RankingItem.astro';
+import { fetchFromAniList, LIST_QUERY } from '../../lib/anilist';
+
+interface Props {
+  variables: any;
+  currentUrl: string;
+}
+
+const { variables, currentUrl } = Astro.props;
+
+const data = await fetchFromAniList({ query: LIST_QUERY, variables });
+const animeList = data?.Page?.media || [];
+const pageInfo = data?.Page?.pageInfo;
+const page = variables.page || 1;
+
+const buildPageUrl = (newPage: number) => {
+  const url = new URL(currentUrl);
+  url.searchParams.set('page', newPage.toString());
+  return url.toString();
+};
+
+const formatFormatText = (format: string) => format ? format.replace('_', ' ') : 'UNKNOWN';
+const formatEpisodesInfo = (format: string, episodes: number, duration: number) => {
+  if (format === 'MOVIE') return duration ? `${duration} mins` : 'TBA';
+  return episodes ? `${episodes} Eps` : 'TBA';
+};
+const formatSeasonText = (season: string, year: number) => (season && year) ? `${season} ${year}` : 'TBA';
+const formatStatusText = (status: string) => status ? status.charAt(0) + status.slice(1).toLowerCase() : 'Unknown';
+---
+
+<div class="flex flex-col gap-8 w-full fade-in-swap">
+  <div class="flex flex-col gap-2 w-full">
+    {animeList.length > 0 ? (
+      animeList.map((anime: any, index: number) => {
+        const actualRank = ((page - 1) * 50) + index + 1;
+        return (
+          <RankingItem 
+            id={anime.id} rank={actualRank} title={anime.title.romaji || anime.title.english}
+            image={anime.coverImage.large} genres={anime.genres || []} studio={anime.studios?.nodes?.[0]?.name || 'Unknown Studio'}
+            format={formatFormatText(anime.format)} episodes={formatEpisodesInfo(anime.format, anime.episodes, anime.duration)}
+            season={formatSeasonText(anime.season, anime.seasonYear)} status={formatStatusText(anime.status)}
+          />
+        );
+      })
+    ) : (
+      <div class="text-center py-20 text-slate-500 dark:text-slate-400">No anime found matching your filters.</div>
+    )}
+  </div>
+
+  {pageInfo && (pageInfo.hasNextPage || page > 1) && (
+    <div class="mt-4 flex justify-center items-center gap-4">
+      {page > 1 ? <a href={buildPageUrl(page - 1)} class="px-6 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm cursor-pointer">Previous</a> : <div class="w-27.5"></div>}
+      <span class="text-sm font-medium text-slate-500">Page {page}</span>
+      {pageInfo.hasNextPage ? <a href={buildPageUrl(page + 1)} class="px-6 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm cursor-pointer">Next</a> : <div class="w-27.5"></div>}
+    </div>
+  )}
+</div>

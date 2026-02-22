@@ -1,0 +1,99 @@
+---
+import { generateSlug } from '../../lib/utils';
+
+interface Props {
+  id: number; 
+  rank: number;
+  title: string;
+  image: string;
+  genres: string[];
+  studio: string;
+  format: string;
+  episodes: string;
+  season: string;
+  status: string;
+}
+
+const { id, rank, title, image, genres, studio, format, episodes, season, status } = Astro.props;
+
+const slug = generateSlug(title);
+---
+
+<a href={`/anime/${id}/${slug}`} class="relative flex flex-col md:flex-row md:items-center gap-4 md:gap-6 p-4 rounded-2xl bg-white dark:bg-slate-800/80 transition-all duration-200 group border border-slate-100 dark:border-slate-800/50 hover:shadow-md w-full">
+  
+  <div class="hidden md:flex flex-col items-center justify-center min-w-12 shrink-0">
+    <span class="text-3xl font-black text-slate-300 dark:text-slate-600 group-hover:text-primary-500 transition-colors">
+      #{rank}
+    </span>
+  </div>
+
+  <div class="flex flex-row items-center gap-4 md:gap-6 flex-1 min-w-0 w-full">
+    
+    <div class="relative shrink-0">
+      <span class="md:hidden absolute -top-2 -left-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-md z-10 shadow-sm border-2 border-white dark:border-slate-800">
+        #{rank}
+      </span>
+      <img 
+        src={image} 
+        alt={title} 
+        class="w-20 h-28 md:w-24 md:h-36 object-cover rounded-xl shadow-sm group-hover:shadow-md transition-shadow" 
+        loading="lazy" 
+      />
+    </div>
+
+    <div class="flex-1 min-w-0 flex flex-col gap-2 md:gap-2.5 py-1">
+      <h3 class="font-bold text-slate-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 text-sm sm:text-base md:text-lg line-clamp-2 md:line-clamp-3 transition-colors leading-snug">
+        {title}
+      </h3>
+      
+      <div class="flex flex-wrap gap-1.5 md:gap-2">
+        {genres.map((genre: unknown, index: number) => (
+          <span 
+            class={`px-2 py-0.5 md:px-2.5 md:py-1 text-[9px] md:text-[11px] font-medium rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-600/50 transition-colors ${index >= 3 ? 'hidden md:flex items-center' : 'flex items-center'}`}
+          >
+            {genre}
+          </span>
+        ))}
+        
+        {/* Badge +N HANYA muncul di Mobile (md:hidden) jika genre lebih dari 3 */}
+        {genres.length > 3 && (
+          <span class="flex items-center md:hidden px-2 py-0.5 text-[9px] font-medium rounded-lg bg-slate-50 dark:bg-slate-800/30 text-slate-400 border border-slate-100 dark:border-slate-700/30">
+            +{genres.length - 3}
+          </span>
+        )}
+      </div>
+    </div>
+
+  </div>
+
+  <div class="grid grid-cols-3 gap-2 md:gap-6 w-full md:w-95 lg:w-112.5 shrink-0 pt-3 md:pt-0 border-t md:border-none border-slate-100 dark:border-slate-800/50">
+    
+    <div class="flex flex-col min-w-0">
+      <span class="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 md:mb-1 truncate w-full">
+        Studio
+      </span>
+      <span class="text-xs md:text-sm font-medium text-slate-800 dark:text-slate-200 truncate w-full">
+        {studio}
+      </span>
+    </div>
+
+    <div class="flex flex-col min-w-0">
+      <span class="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 md:mb-1 truncate w-full">
+        {format}
+      </span>
+      <span class="text-xs md:text-sm font-medium text-slate-800 dark:text-slate-200 truncate w-full">
+        {episodes}
+      </span>
+    </div>
+
+    <div class="flex flex-col min-w-0">
+      <span class="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 md:mb-1 truncate w-full">
+        {season}
+      </span>
+      <span class="text-xs md:text-sm font-medium text-slate-800 dark:text-slate-200 truncate w-full">
+        {status}
+      </span>
+    </div>
+
+  </div>
+</a>

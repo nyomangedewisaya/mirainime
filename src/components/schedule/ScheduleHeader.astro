@@ -1,0 +1,36 @@
+---
+import { Icon } from 'astro-icon/components';
+import ThemeToggle from '../ui/ThemeToggle.astro';
+import logo from '../../assets/mirai.png';
+
+interface Props {
+  currentSeason: string;
+  currentYear: number;
+}
+const { currentSeason, currentYear } = Astro.props;
+
+const seasons = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
+---
+<header class="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/50 dark:border-slate-800/50">
+  <div class="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-4">
+    
+    <a href="/explore" class="flex items-center shrink-0 group">
+      <img src={logo.src} alt="Mirai Logo" class="h-15 md:h-18 w-auto object-contain" />
+    </a>
+
+    <div class="flex items-center gap-3 md:gap-4">
+      <h1 class="hidden md:block text-lg font-bold text-slate-900 dark:text-white mr-2">Weekly Schedule</h1>
+      
+      <div class="relative">
+        <select id="season-selector" class="bg-slate-100 dark:bg-slate-800 border-none text-sm font-bold text-primary-600 dark:text-primary-400 rounded-xl py-2 pl-4 pr-10 focus:ring-2 focus:ring-primary-500/50 cursor-pointer appearance-none outline-none shadow-sm">
+          {seasons.map(s => (
+            <option value={s} selected={s === currentSeason}>{s} {currentYear}</option>
+          ))}
+        </select>
+        <Icon name="lucide:chevron-down" class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-primary-500 pointer-events-none" />
+      </div>
+    </div>
+
+    <ThemeToggle />
+  </div>
+</header>

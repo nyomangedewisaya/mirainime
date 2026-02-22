@@ -1,0 +1,18 @@
+---
+const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+---
+<div class="w-full overflow-x-auto custom-scrollbar pb-4 -mb-4">
+  <div class="relative flex items-center gap-1 md:gap-2 min-w-max px-1" id="tabs-container">
+    
+    <div id="tab-indicator" class="absolute top-0 bottom-0 bg-primary-600 rounded-full shadow-md shadow-primary-500/20 transition-all duration-300 ease-out z-0"></div>
+
+    {days.map((day) => (
+      <button 
+        class="day-tab relative z-10 px-6 py-2.5 rounded-full text-sm font-semibold transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-0 active:outline-none outline-none [-webkit-tap-highlight-color:transparent]"
+        data-day={day}
+      >
+        {day}
+      </button>
+    ))}
+  </div>
+</div>

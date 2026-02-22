@@ -1,0 +1,172 @@
+---
+import AnimeCard from '../cards/AnimeCard.astro';
+import RankingItem from '../cards/RankingItem.astro';
+import { Icon } from 'astro-icon/components';
+import { fetchFromAniList } from '../../lib/anilist';
+
+interface Props {
+  variables: any;
+}
+const { variables } = Astro.props;
+
+const EXPLORE_QUERY = `
+  query GetExploreData($currentSeason: MediaSeason, $currentYear: Int, $nextSeason: MediaSeason, $nextYear: Int) {
+    trending: Page(page: 1, perPage: 10) {
+      media(sort: TRENDING_DESC, type: ANIME, isAdult: false) {
+        id
+        title { romaji }
+        coverImage { large }
+      }
+    }
+    
+    popularSeason: Page(page: 1, perPage: 10) {
+      media(season: $currentSeason, seasonYear: $currentYear, sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
+        id
+        title { romaji }
+        coverImage { large }
+      }
+    }
+    
+    upcoming: Page(page: 1, perPage: 10) {
+      media(season: $nextSeason, seasonYear: $nextYear, sort: POPULARITY_DESC, type: ANIME, status: NOT_YET_RELEASED, isAdult: false) {
+        id
+        title { romaji }
+        coverImage { large }
+      }
+    }
+    
+    topRanking: Page(page: 1, perPage: 10) {
+      media(sort: SCORE_DESC, type: ANIME, isAdult: false) {
+        id
+        title { romaji }
+        coverImage { large }
+        genres
+        format
+        episodes
+        duration
+        season
+        seasonYear
+        status
+        studios(isMain: true) {
+          nodes { name }
+        }
+      }
+    }
+  }
+`;
+const data = await fetchFromAniList({ query: EXPLORE_QUERY, variables });
+
+const trendingAnime = data?.trending?.media || [];
+const popularAnime = data?.popularSeason?.media || [];
+const upcomingAnime = data?.upcoming?.media || [];
+const topAnime = data?.topRanking?.media || [];
+
+const formatEpisodesInfo = (format: string, episodes: number, duration: number) => {
+  if (format === 'MOVIE') return duration ? `${duration} mins` : 'Unknown duration';
+  return episodes ? `${episodes} Episodes` : 'Unknown eps';
+};
+
+const formatFormatText = (format: string) => {
+  if (!format) return 'Unknown';
+  if (format === 'TV_SHORT') return 'TV Short';
+  return format.replace('_', ' ');
+};
+
+const formatSeasonText = (season: string, year: number) => {
+  if (!season || !year) return 'TBA';
+  return `${season.charAt(0) + season.slice(1).toLowerCase()} ${year}`;
+};
+
+const formatStatusText = (status: string) => {
+  if (!status) return 'Unknown';
+  if (status === 'NOT_YET_RELEASED') return 'Not Yet Released';
+  return status.charAt(0) + status.slice(1).toLowerCase();
+};
+---
+
+<div class="flex flex-col gap-16 w-full fade-in-swap">
+  <section>
+    <div class="flex items-end justify-between mb-6">
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <span class="w-1.5 h-6 bg-primary-500 rounded-full"></span> Trending Now
+        </h2>
+        <a href="/anime/trending" class="text-md font-medium text-primary-500 hover:text-primary-600 transition-colors hover:underline">View All</a>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+        {trendingAnime.map((anime: any) => (
+        <AnimeCard 
+            id={anime.id}
+            title={anime.title.romaji} 
+            image={anime.coverImage.large} 
+        />
+        ))}
+    </div>
+    </section>
+
+    <section>
+    <div class="flex items-end justify-between mb-6">
+        <div>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span class="w-1.5 h-6 bg-indigo-500 rounded-full"></span> Popular This Season
+        </h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 ml-3.5">
+            {formatSeasonText(variables.currentSeason, variables.currentYear)}
+        </p>
+        </div>
+        <a href="/anime/seasonal" class="text-md font-medium text-primary-500 hover:text-primary-600 transition-colors hover:underline">View All</a>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+        {popularAnime.map((anime: any) => (
+        <AnimeCard 
+            id={anime.id}
+            title={anime.title.romaji} 
+            image={anime.coverImage.large} 
+        />
+        ))}
+    </div>
+    </section>
+
+    <section>
+    <div class="flex items-end justify-between mb-6">
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <span class="w-1.5 h-6 bg-emerald-500 rounded-full"></span> Upcoming Next Season 
+        </h2>
+        <a href="/anime/upcoming" class="text-md font-medium text-primary-500 hover:text-primary-600 transition-colors hover:underline">View All</a>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+        {upcomingAnime.map((anime: any) => (
+        <AnimeCard 
+            id={anime.id}
+            title={anime.title.romaji} 
+            image={anime.coverImage.large} 
+        />
+        ))}
+    </div>
+    </section>
+
+    <section class="mx-auto w-full">
+    <div class="flex items-end justify-between mb-8 pb-4 border-b border-slate-200 dark:border-slate-800">
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <Icon name="lucide:trophy" class="w-6 h-6 text-primary-500" /> All-Time Top Ranking 100
+        </h2>
+        <a href="/anime/top-100" class="text-md font-medium text-primary-500 transition-colors hover:underline">View All Ranking</a>
+    </div>
+    <div class="flex flex-col gap-2">
+        {topAnime.map((anime: any, index: number) => (
+        <RankingItem 
+            id={anime.id}        
+            rank={index + 1}
+            title={anime.title.romaji}
+            image={anime.coverImage.large}
+            genres={anime.genres || []}
+            studio={anime.studios?.nodes?.[0]?.name || 'Unknown Studio'}
+            format={formatFormatText(anime.format)}
+            episodes={formatEpisodesInfo(anime.format, anime.episodes, anime.duration)}
+            season={formatSeasonText(anime.season, anime.seasonYear)}
+            status={formatStatusText(anime.status)}
+        />
+        ))}
+    </div>
+    </section>
+
+</div>
