@@ -1,78 +1,72 @@
 ---
-export const prerender = false;
+export const prerender = false; 
 
-import { getDynamicSeasons } from '../../lib/utils';
 import AppLayout from '../../layouts/AppLayout.astro';
 import Navbar from '../../components/layout/Navbar.astro';
 import Footer from '../../components/layout/Footer.astro';
-import FilterBar from '../../components/ui/FilterBar.astro';
-import { Icon } from 'astro-icon/components';
+import MangaFilterBar from '../../components/ui/MangaFilterBar.astro'; 
 import ActiveFilters from '../../components/ui/ActiveFilters.astro';
 import SkeletonCard from '../../components/skeleton/SkeletonCard.astro';
-import AnimeGridList from '../../components/content/anime/AnimeGridList.astro';
+import MangaGridList from '../../components/content/manga/MangaGridList.astro';
+import { Icon } from 'astro-icon/components';
 
 const searchParams = Astro.url.searchParams;
 const page = parseInt(searchParams.get('page') || '1', 10);
 const getInt = (key: string) => searchParams.get(key) ? parseInt(searchParams.get(key)!) : undefined;
 
-const { currentSeason, currentYear } = getDynamicSeasons();
-
-const activeSeason = searchParams.get('season') || currentSeason;
-const activeYear = searchParams.get('year') ? parseInt(searchParams.get('year')!) : currentYear;
-
 const variables: any = {
   page: page,
   perPage: 24,
-  sort: 'POPULARITY_DESC', 
-  season: activeSeason,
-  seasonYear: activeYear,
+  type: 'MANGA',
+  countryOfOrigin: 'JP',
+  format: searchParams.get('format') || 'MANGA', 
+  sort: searchParams.get('sort') || 'POPULARITY_DESC', 
   
   search: searchParams.get('search') || undefined,
   genre: searchParams.get('genre') || undefined,
-  format: searchParams.get('format') || undefined,
   status: searchParams.get('status') || undefined,
   source: searchParams.get('source') || undefined,
-  countryOfOrigin: searchParams.get('countryOfOrigin') || undefined,
-  episodes_greater: getInt('episodes_greater'),
-  episodes_lesser: getInt('episodes_lesser'),
-  duration_greater: getInt('duration_greater'),
-  duration_lesser: getInt('duration_lesser'),
+  
+  chapters_greater: getInt('chapters_greater'),
+  chapters_lesser: getInt('chapters_lesser'),
+  volumes_greater: getInt('volumes_greater'),
+  volumes_lesser: getInt('volumes_lesser'),
   startDate_greater: getInt('startDate_greater'),
   startDate_lesser: getInt('startDate_lesser'),
+  
   tag_in: searchParams.get('tags') ? searchParams.get('tags')!.split(',') : undefined,
 };
 
 Object.keys(variables).forEach(key => variables[key] === undefined && delete variables[key]);
 ---
 
-<AppLayout>
+<AppLayout title="Popular Manga">
   <Navbar />
-  <FilterBar defaultSeason={activeSeason} defaultYear={activeYear} />
-  <ActiveFilters defaultSeason={activeSeason} defaultYear={activeYear} />
+  <MangaFilterBar />
+  <ActiveFilters />
 
-  <main class="container mx-auto px-4 lg:px-8 md:pb-6 mb-20 min-h-[50vh]">
-    <a href="/explore"
+  <main class="container mx-auto mt-4 px-4 lg:px-8 md:pb-6 mb-20 min-h-[50vh]">
+    
+    <a href="/manga"
       class="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700/50 rounded-full transition-all duration-300 w-fit group shadow-sm cursor-pointer"
     >
       <Icon name="lucide:arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-300" />
       Back
     </a>
-    
+
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-        <span class="w-1.5 h-8 bg-primary-500 rounded-full"></span>
-        Popular This Season
+        <span class="w-1.5 h-8 bg-indigo-500 rounded-full"></span>
+        All-Time Popular Manga
       </h1>
-      <p class="text-slate-500 dark:text-slate-400 mt-2 ml-4.5">Most actively discussed and watched anime this season.</p>
+      <p class="text-slate-500 dark:text-slate-400 mt-2 ml-4.5">The most highly favored manga of all time by the community.</p>
     </div>
 
-    <AnimeGridList server:defer variables={variables} currentUrl={Astro.request.url}>
-      
+    <MangaGridList server:defer variables={variables} currentUrl={Astro.request.url}>
       <div slot="fallback" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 w-full">
         {Array.from({ length: 24 }).map(() => <SkeletonCard />)}
       </div>
-
-    </AnimeGridList>
+    </MangaGridList>
   </main>
 
   <Footer />

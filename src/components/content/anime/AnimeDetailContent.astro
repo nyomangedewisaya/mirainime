@@ -1,9 +1,11 @@
 ---
-import DetailHero from '../detail/DetailHero.astro';
-import DetailInfoGrid from '../detail/DetailInfoGrid.astro';
-import DetailTags from '../detail/DetailTags.astro';
-import DetailCharacters from '../detail/DetailCharacters.astro';
-import { fetchFromAniList } from '../../lib/anilist';
+import DetailHero from '../../detail/DetailHero.astro';
+import DetailInfoGrid from '../../detail/DetailInfoGrid.astro';
+import DetailTags from '../../detail/DetailTags.astro';
+import DetailCharacters from '../../detail/DetailCharacters.astro';
+import { fetchFromAniList } from '../../../lib/anilist';
+import DetailRelations from '../../detail/DetailRelations.astro';
+import DetailTrailer from '../../detail/DetailTrailer.astro';
 
 interface Props {
   id: string;
@@ -52,6 +54,25 @@ const ANIME_DETAIL_QUERY = `
           }
         }
       }
+      relations {
+        edges {
+          relationType
+          node {
+            id
+            type
+            format
+            status
+            countryOfOrigin
+            title { romaji english }
+            coverImage { large }
+          }
+        }
+      }
+      trailer {
+        id
+        site
+        thumbnail
+      }
     }
   }
 `;
@@ -76,7 +97,15 @@ if (!anime) {
     <DetailTags tags={anime.tags} />
   )}
   
+  {anime.relations && anime.relations.edges.length > 0 && (
+    <DetailRelations relations={anime.relations} />
+  )}
+  
   {anime.characters && anime.characters.edges.length > 0 && (
     <DetailCharacters characters={anime.characters} />
+  )}
+
+  {anime.trailer && anime.trailer.site === "youtube" && (
+    <DetailTrailer trailer={anime.trailer} />
   )}
 </div>

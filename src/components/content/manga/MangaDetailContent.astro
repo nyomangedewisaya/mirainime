@@ -1,0 +1,104 @@
+---
+import DetailHero from '../../detail/DetailHero.astro';
+import DetailInfoGrid from '../../detail/DetailInfoGrid.astro';
+import DetailTags from '../../detail/DetailTags.astro';
+import DetailCharacters from '../../detail/DetailCharacters.astro';
+import { fetchFromAniList } from '../../../lib/anilist';
+import DetailRelations from '../../detail/DetailRelations.astro';
+import DetailTrailer from '../../detail/DetailTrailer.astro';
+
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+
+const MANGA_DETAIL_QUERY = `
+  query ($id: Int) {
+    Media(id: $id, type: MANGA) {
+      id
+      title { romaji english native }
+      synonyms
+      description(asHtml: false)
+      bannerImage
+      coverImage { extraLarge large medium }
+      genres
+      source
+      format
+      chapters
+      volumes
+      status
+      startDate { year month day }
+      endDate { year month day }
+      averageScore
+      meanScore
+      popularity
+      favourites
+      rankings { rank type context year season allTime }
+      tags { name rank }
+      characters(sort: ROLE, perPage: 25) {
+        edges {
+          role
+          node { 
+            id   
+            name { full } 
+            image { medium } 
+          }
+        }
+      }
+      relations {
+        edges {
+          relationType
+          node {
+            id
+            type
+            format
+            status
+            countryOfOrigin
+            title { romaji english }
+            coverImage { large }
+          }
+        }
+      }
+      trailer {
+        id
+        site
+        thumbnail
+      }
+    }
+  }
+`;
+
+const data = await fetchFromAniList({ 
+  query: MANGA_DETAIL_QUERY, 
+  variables: { id: parseInt(id, 10) } 
+});
+
+const manga = data?.Media;
+
+if (!manga) {
+  return Astro.redirect('/404');
+}
+---
+
+<div class="w-full flex flex-col fade-in-swap">
+  <DetailHero anime={manga} />
+  
+  <DetailInfoGrid anime={manga} />
+  
+  {manga.tags && manga.tags.length > 0 && (
+    <DetailTags tags={manga.tags} />
+  )}
+  
+  {manga.relations && manga.relations.edges.length > 0 && (
+    <DetailRelations relations={manga.relations} />
+  )}
+  
+  {manga.characters && manga.characters.edges.length > 0 && (
+    <DetailCharacters characters={manga.characters} />
+  )}
+
+  {manga.trailer && manga.trailer.site === "youtube" && (
+    <DetailTrailer trailer={manga.trailer} />
+  )}
+</div>

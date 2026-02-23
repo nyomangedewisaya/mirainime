@@ -136,14 +136,12 @@ const validAnime = data?.Page?.media?.filter((m: any) => m.nextAiringEpisode !==
       Object.keys(groupedData).forEach(day => groupedData[day].sort((a, b) => a.rawTime - b.rawTime));
     };
 
-    // FUNGSI RENDER (Sekarang ada simulasi Skeleton sesaat saat render untuk efek premium)
     const renderCards = () => {
       const container = document.getElementById('schedule-container');
       const emptyState = document.getElementById('empty-state');
       const cardTemplate = document.getElementById('card-template');
       const skeletonTemplate = document.getElementById('skeleton-template');
       
-      // 1. Tampilkan Skeleton Instan (Mensimulasikan loading & mencegah layout mati)
       container.innerHTML = '';
       emptyState.classList.add('hidden');
       emptyState.classList.remove('flex');

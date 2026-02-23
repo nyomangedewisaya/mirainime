@@ -15,7 +15,6 @@ interface Props {
 }
 
 const { id, rank, title, image, genres, studio, format, episodes, season, status } = Astro.props;
-
 const slug = generateSlug(title);
 ---
 
@@ -54,8 +53,6 @@ const slug = generateSlug(title);
             {genre}
           </span>
         ))}
-        
-        {/* Badge +N HANYA muncul di Mobile (md:hidden) jika genre lebih dari 3 */}
         {genres.length > 3 && (
           <span class="flex items-center md:hidden px-2 py-0.5 text-[9px] font-medium rounded-lg bg-slate-50 dark:bg-slate-800/30 text-slate-400 border border-slate-100 dark:border-slate-700/30">
             +{genres.length - 3}

@@ -5,11 +5,10 @@ import AppLayout from '../../layouts/AppLayout.astro';
 import Navbar from '../../components/layout/Navbar.astro';
 import Footer from '../../components/layout/Footer.astro';
 import FilterBar from '../../components/ui/FilterBar.astro';
-import { fetchFromAniList, LIST_QUERY } from '../../lib/anilist';
 import { Icon } from 'astro-icon/components';
 import ActiveFilters from '../../components/ui/ActiveFilters.astro';
 import SkeletonCard from '../../components/skeleton/SkeletonCard.astro';
-import AnimeGridList from '../../components/content/AnimeGridList.astro';
+import AnimeGridList from '../../components/content/anime/AnimeGridList.astro';
 
 const searchParams = Astro.url.searchParams;
 const page = parseInt(searchParams.get('page') || '1', 10);
@@ -41,8 +40,6 @@ const variables: any = {
 };
 
 Object.keys(variables).forEach(key => variables[key] === undefined && delete variables[key]);
-
-const data = await fetchFromAniList({ query: LIST_QUERY, variables });
 ---
 
 <AppLayout>

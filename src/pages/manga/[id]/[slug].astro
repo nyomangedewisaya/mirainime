@@ -5,23 +5,23 @@ import AppLayout from '../../../layouts/AppLayout.astro';
 import Navbar from '../../../components/layout/Navbar.astro';
 import Footer from '../../../components/layout/Footer.astro';
 import SkeletonDetail from '../../../components/skeleton/SkeletonDetail.astro';
-import AnimeDetailContent from '../../../components/content/anime/AnimeDetailContent.astro';
+import MangaDetailContent from '../../../components/content/manga/MangaDetailContent.astro';
 
 const { id } = Astro.params;
 ---
 
-<AppLayout>
+<AppLayout title="Manga Details">
   <Navbar />
   
   <main class="w-full flex flex-col min-h-screen">
     
-    <AnimeDetailContent server:defer id={id as string}>
+    <MangaDetailContent server:defer id={id as string}>
       
       <div slot="fallback" class="w-full">
         <SkeletonDetail />
       </div>
 
-    </AnimeDetailContent>
+    </MangaDetailContent>
 
   </main>
 

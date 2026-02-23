@@ -3,7 +3,10 @@ const { tags } = Astro.props;
 ---
 
 <section class="container mx-auto px-4 lg:px-8 mb-16">
-  <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-6">Tags</h3>
+  <div class="flex items-center gap-3 mb-6">
+    <div class="h-8 w-1.5 bg-primary-500 rounded-full"></div>
+    <h2 class="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">Tags</h2>
+  </div>
   <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
     {tags?.map((tag: any) => (
       <div class="group flex items-center justify-between p-3 md:p-4 bg-white dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800/50 rounded-xl shadow-sm hover:shadow-md hover:border-primary-200 dark:hover:border-primary-900/50 transition-all duration-200">

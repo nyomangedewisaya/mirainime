@@ -1,56 +1,91 @@
 ---
-import { formatAniListDate, formatCountdown } from '../../lib/utils';
+interface Props {
+  anime: any; 
+}
+
 const { anime } = Astro.props;
 
-const isReleasing = anime.status === 'RELEASING';
-const studios = anime.studios?.edges?.filter((e: any) => e.isMain).map((e: any) => e.node.name).join(', ') || 'Unknown';
-const producers = anime.studios?.edges?.filter((e: any) => !e.isMain).map((e: any) => e.node.name).join(', ') || 'None';
+const formatText = (text: string) => {
+  if (!text) return 'Unknown';
+  return text.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
 
-const infoItems = [
-  { label: 'Format', value: anime.format?.replace('_', ' ') || 'Unknown' },
-  { label: 'Episodes', value: anime.episodes || 'TBA' },
-  { label: 'Episode Duration', value: anime.duration ? `${anime.duration} mins` : 'TBA' },
-  { label: 'Status', value: isReleasing ? 'Ongoing' : (anime.status === 'FINISHED' ? 'Finished' : 'Upcoming') },
-  { label: 'Start Date', value: formatAniListDate(anime.startDate) },
-  { label: 'End Date', value: formatAniListDate(anime.endDate) },
-  { label: 'Season', value: anime.season ? `${anime.season} ${anime.seasonYear}` : 'TBA' },
-  { label: 'Average Score', value: anime.averageScore ? `${anime.averageScore}%` : 'N/A' },
-  { label: 'Mean Score', value: anime.meanScore ? `${anime.meanScore}%` : 'N/A' },
-  { label: 'Popularity', value: anime.popularity?.toLocaleString() || '0' },
-  { label: 'Favorites', value: anime.favourites?.toLocaleString() || '0' },
-  { label: 'Studios', value: studios },
-  { label: 'Producers', value: producers },
-  { label: 'Source', value: anime.source?.replace('_', ' ') || 'Unknown' },
-  { label: 'Romaji', value: anime.title.romaji },
-  { label: 'English', value: anime.title.english || 'N/A' },
-  { label: 'Native', value: anime.title.native || 'N/A' },
-];
+const formatDate = (dateObj: { year: number, month: number, day: number }) => {
+  if (!dateObj || !dateObj.year) return 'TBA';
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${monthNames[dateObj.month - 1] || ''} ${dateObj.day || ''}, ${dateObj.year}`;
+};
+
+const isManga = anime.chapters !== undefined || anime.volumes !== undefined;
 ---
 
-<section class="container mx-auto px-4 lg:px-8 mb-16">
-  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+<section class="container mx-auto px-4 lg:px-8 py-8 md:py-12 border-t border-slate-200/50 dark:border-slate-800/50">
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 md:gap-8">
     
-    {isReleasing && anime.nextAiringEpisode && (
-      <div class="col-span-2 md:col-span-1 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 p-4 md:p-5 rounded-2xl shadow-sm flex flex-col justify-center">
-        <span class="text-[10px] md:text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
-          Airing &bull; Ep {anime.nextAiringEpisode.episode}
-        </span>
-        <span class="text-lg md:text-xl font-extrabold text-emerald-700 dark:text-emerald-300 truncate">
-          {formatCountdown(anime.nextAiringEpisode.timeUntilAiring)}
+    <div class="flex flex-col gap-1">
+      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Format</span>
+      <span class="text-sm font-semibold text-slate-900 dark:text-white">{formatText(anime.format)}</span>
+    </div>
+
+    {isManga && (
+      <>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Chapters</span>
+          <span class="text-sm font-semibold text-slate-900 dark:text-white">{anime.chapters || '-'}</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Volumes</span>
+          <span class="text-sm font-semibold text-slate-900 dark:text-white">{anime.volumes || '-'}</span>
+        </div>
+      </>
+    )}
+
+    {!isManga && (
+      <>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Episodes</span>
+          <span class="text-sm font-semibold text-slate-900 dark:text-white">{anime.episodes || 'TBA'}</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Duration</span>
+          <span class="text-sm font-semibold text-slate-900 dark:text-white">{anime.duration ? `${anime.duration} mins` : 'Unknown'}</span>
+        </div>
+      </>
+    )}
+
+    <div class="flex flex-col gap-1">
+      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Status</span>
+      <span class="text-sm font-semibold text-slate-900 dark:text-white">{formatText(anime.status)}</span>
+    </div>
+    
+    <div class="flex flex-col gap-1">
+      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Start Date</span>
+      <span class="text-sm font-semibold text-slate-900 dark:text-white">{formatDate(anime.startDate)}</span>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">End Date</span>
+      <span class="text-sm font-semibold text-slate-900 dark:text-white">{formatDate(anime.endDate)}</span>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Average Score</span>
+      <span class="text-sm font-semibold text-slate-900 dark:text-white">{anime.averageScore ? `${anime.averageScore}%` : '-'}</span>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Popularity</span>
+      <span class="text-sm font-semibold text-slate-900 dark:text-white">{anime.popularity?.toLocaleString()}</span>
+    </div>
+    
+    {anime.synonyms && anime.synonyms.length > 0 && (
+      <div class="flex flex-col gap-1 col-span-2 sm:col-span-3 lg:col-span-6">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Synonyms</span>
+        <span class="text-sm font-semibold text-slate-900 dark:text-white leading-relaxed">
+          {anime.synonyms.join(', ')}
         </span>
       </div>
     )}
-
-    {infoItems.map(item => (
-      <div class="bg-white dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800/50 p-4 md:p-5 rounded-2xl shadow-sm flex flex-col justify-center">
-        <span class="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1 truncate w-full">
-          {item.label}
-        </span>
-        <span class="text-sm md:text-base font-medium text-slate-800 dark:text-slate-200 truncate w-full capitalize">
-          {item.value}
-        </span>
-      </div>
-    ))}
 
   </div>
 </section>

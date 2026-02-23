@@ -1,0 +1,74 @@
+---
+import MangaCard from '../../cards/MangaCard.astro';
+import { fetchFromAniList } from '../../../lib/anilist';
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  variables: any;
+  currentUrl: string;
+}
+
+const { variables, currentUrl } = Astro.props;
+
+const MANGA_LIST_QUERY = `
+  query ($page: Int, $perPage: Int, $sort: [MediaSort], $search: String, $genre: String, $status: MediaStatus, $source: MediaSource, $chapters_greater: Int, $chapters_lesser: Int, $volumes_greater: Int, $volumes_lesser: Int, $startDate_greater: FuzzyDateInt, $startDate_lesser: FuzzyDateInt, $tag_in: [String], $type: MediaType, $countryOfOrigin: CountryCode, $format: MediaFormat) {
+    Page(page: $page, perPage: $perPage) {
+      pageInfo { total currentPage lastPage hasNextPage }
+      media(type: $type, countryOfOrigin: $countryOfOrigin, format: $format, sort: $sort, search: $search, genre: $genre, status: $status, source: $source, chapters_greater: $chapters_greater, chapters_lesser: $chapters_lesser, volumes_greater: $volumes_greater, volumes_lesser: $volumes_lesser, startDate_greater: $startDate_greater, startDate_lesser: $startDate_lesser, tag_in: $tag_in, isAdult: false) {
+        id title { romaji english } coverImage { large } format status chapters volumes averageScore genres
+      }
+    }
+  }
+`;
+
+const data = await fetchFromAniList({ query: MANGA_LIST_QUERY, variables });
+const mangas = data?.Page?.media || [];
+const pageInfo = data?.Page?.pageInfo;
+
+const urlObj = new URL(currentUrl);
+const createPageUrl = (newPage: number) => {
+  urlObj.searchParams.set('page', newPage.toString());
+  return urlObj.toString();
+};
+---
+
+<div class="flex flex-col gap-10 fade-in-swap w-full">
+  
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 w-full">
+    {mangas.map((manga: any) => (
+      <MangaCard 
+        id={manga.id}
+        title={manga.title.english || manga.title.romaji} 
+        image={manga.coverImage.large} 
+      />
+    ))}
+  </div>
+
+  {mangas.length === 0 && (
+    <div class="w-full py-20 flex flex-col items-center justify-center text-center">
+      <Icon name="lucide:book-x" class="w-16 h-16 text-slate-300 dark:text-slate-600 mb-4" />
+      <h3 class="text-xl font-bold text-slate-700 dark:text-slate-300">No manga found</h3>
+      <p class="text-slate-500 dark:text-slate-400 mt-2">Try adjusting your filters or search terms.</p>
+    </div>
+  )}
+
+  {pageInfo && pageInfo.lastPage > 1 && (
+    <div class="flex items-center justify-center gap-2 mt-4">
+      {pageInfo.currentPage > 1 && (
+        <a href={createPageUrl(pageInfo.currentPage - 1)} class="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors shadow-sm">
+          <Icon name="lucide:chevron-left" class="w-4 h-4" /> Prev
+        </a>
+      )}
+      
+      <span class="px-4 py-2.5 text-sm font-semibold text-slate-500 dark:text-slate-400">
+        Page {pageInfo.currentPage} of {pageInfo.lastPage}
+      </span>
+
+      {pageInfo.hasNextPage && (
+        <a href={createPageUrl(pageInfo.currentPage + 1)} class="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors shadow-sm">
+          Next <Icon name="lucide:chevron-right" class="w-4 h-4" />
+        </a>
+      )}
+    </div>
+  )}
+</div>

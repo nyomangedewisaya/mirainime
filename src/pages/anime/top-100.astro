@@ -6,7 +6,7 @@ import Navbar from '../../components/layout/Navbar.astro';
 import Footer from '../../components/layout/Footer.astro';
 import { Icon } from 'astro-icon/components';
 import SkeletonRankingItem from '../../components/skeleton/SkeletonRankingItem.astro';
-import RankingList from '../../components/content/RankingList.astro';
+import RankingList from '../../components/content/anime/RankingList.astro';
 
 const searchParams = Astro.url.searchParams;
 const page = parseInt(searchParams.get('page') || '1', 10);

@@ -9,7 +9,7 @@ import { fetchFromAniList, LIST_QUERY } from '../../lib/anilist';
 import { Icon } from 'astro-icon/components';
 import ActiveFilters from '../../components/ui/ActiveFilters.astro';
 import SkeletonCard from '../../components/skeleton/SkeletonCard.astro';
-import AnimeGridList from '../../components/content/AnimeGridList.astro';
+import AnimeGridList from '../../components/content/anime/AnimeGridList.astro';
 
 const searchParams = Astro.url.searchParams;
 const page = parseInt(searchParams.get('page') || '1', 10);

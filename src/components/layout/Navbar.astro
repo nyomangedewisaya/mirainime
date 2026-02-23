@@ -1,21 +1,21 @@
 ---
-import logo from '../../assets/mirai.png'; // Pastikan path ini benar!
+import logo from '../../assets/mirai.png'; 
 import { Icon } from 'astro-icon/components';
 import ThemeToggle from '../ui/ThemeToggle.astro';
 
 const pathname = Astro.url.pathname;
 
 const navLinks = [
-  { name: 'Anime', href: '/explore', icon: 'lucide:tv' },
+  { name: 'Anime', href: '/anime', icon: 'lucide:tv' },
   { name: 'Manga', href: '/manga', icon: 'lucide:book-open' },
-  { name: 'Light Novel', href: '/light-novel', icon: 'lucide:book-text' },
+  { name: 'Novel', href: '/novel', icon: 'lucide:book-text' },
   { name: 'Manhwa', href: '/manhwa', icon: 'lucide:smartphone' },
   { name: 'Manhua', href: '/manhua', icon: 'lucide:scroll' },
 ];
 
 const extraMenu = [
   { name: 'Favorites', href: '/favorites', icon: 'lucide:heart' },
-  { name: 'Schedule', href: '/schedule', icon: 'lucide:calendar-clock' },
+  { name: 'Anime Schedule', href: '/schedule', icon: 'lucide:calendar-clock' },
   { name: 'Top Characters', href: '/characters', icon: 'lucide:users' },
   { name: 'Settings', href: '/settings', icon: 'lucide:settings' },
 ];
@@ -27,7 +27,7 @@ const isActive = (path: string) => pathname === path || pathname.startsWith(path
   <div class="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-4">
     
     <div class="flex items-center gap-8">
-      <a href="/explore" class="flex items-center shrink-0">
+      <a href="/anime" class="flex items-center shrink-0">
         <img 
           src={logo.src} 
           alt="Mirai Logo" 
