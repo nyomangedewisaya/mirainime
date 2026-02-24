@@ -6,18 +6,20 @@ import ThemeToggle from '../ui/ThemeToggle.astro';
 const pathname = Astro.url.pathname;
 
 const navLinks = [
-  { name: 'Anime', href: '/anime', icon: 'lucide:tv' },
+  { name: 'Anime', href: '/anime', icon: 'lucide:tv' },             
+  { name: 'Aeni', href: '/aeni', icon: 'lucide:film' },             
+  { name: 'Donghua', href: '/donghua', icon: 'lucide:monitor-play' }, 
   { name: 'Manga', href: '/manga', icon: 'lucide:book-open' },
-  { name: 'Novel', href: '/novel', icon: 'lucide:book-text' },
   { name: 'Manhwa', href: '/manhwa', icon: 'lucide:smartphone' },
   { name: 'Manhua', href: '/manhua', icon: 'lucide:scroll' },
+  { name: 'Novel', href: '/novel', icon: 'lucide:book-text' },
 ];
 
 const extraMenu = [
+  { name: 'Anime Schedule', href: '/anime/schedule', icon: 'lucide:tv' },
+  { name: 'Donghua Schedule', href: '/donghua/schedule', icon: 'lucide:monitor-play' },
   { name: 'Favorites', href: '/favorites', icon: 'lucide:heart' },
-  { name: 'Anime Schedule', href: '/schedule', icon: 'lucide:calendar-clock' },
-  { name: 'Top Characters', href: '/characters', icon: 'lucide:users' },
-  { name: 'Settings', href: '/settings', icon: 'lucide:settings' },
+  { name: 'Top Characters', href: '/character/top', icon: 'lucide:users' },
 ];
 
 const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
@@ -26,43 +28,40 @@ const isActive = (path: string) => pathname === path || pathname.startsWith(path
 <header class="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/50 dark:border-slate-800/50 transition-colors duration-300">
   <div class="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-4">
     
-    <div class="flex items-center gap-8">
-      <a href="/anime" class="flex items-center shrink-0">
-        <img 
-          src={logo.src} 
-          alt="Mirai Logo" 
-          class="h-15 w-auto md:h-18 object-contain" 
-        />
-      </a>
+    <a href="/anime" class="flex items-center shrink-0">
+      <img 
+        src={logo.src} 
+        alt="Mirai Logo" 
+        class="h-15 w-auto md:h-18 object-contain" 
+      />
+    </a>
 
-      <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
-        {navLinks.map((link) => (
-          <a 
-            href={link.href} 
-            class={`transition-all duration-300 ${
+    <nav class="hidden md:flex items-center gap-1 md:gap-2">
+      {navLinks.map((link) => (
+        <a 
+          href={link.href} 
+          class={`relative flex items-center gap-1.5 px-3 py-2 md:px-3.5 md:py-2 rounded-xl text-sm font-semibold transition-all duration-300 group ${
+            isActive(link.href) 
+              ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 shadow-sm' 
+              : 'text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+          }`}
+        >
+          <Icon 
+            name={link.icon} 
+            class={`w-4 h-4 transition-transform duration-300 ${
               isActive(link.href) 
-                ? 'text-primary-600 dark:text-primary-400 font-bold' 
-                : 'text-slate-600 dark:text-slate-300 hover:text-primary-500'
-            }`}
-          >
-            {link.name}
-          </a>
-        ))}
-      </nav>
-    </div>
+                ? 'scale-110 opacity-100' 
+                : 'opacity-70 group-hover:scale-110 group-hover:opacity-100'
+            }`} 
+          />
+          <span>{link.name}</span>
+        </a>
+      ))}
+    </nav>
 
     <div class="flex items-center gap-2 sm:gap-3">
       
       <ThemeToggle />
-      
-      <div class="hidden sm:flex items-center gap-2">
-        <button class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
-          Login
-        </button>
-        <button class="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 rounded-full shadow-md shadow-primary-500/20 hover:shadow-primary-500/40 transition-all duration-300 transform active:scale-95 cursor-pointer">
-          Sign Up
-        </button>
-      </div>
 
       <div class="relative" id="dropdown-wrapper">
         
@@ -90,7 +89,7 @@ const isActive = (path: string) => pathname === path || pathname.startsWith(path
           </div>
 
           <div class="flex flex-col p-2">
-            <span class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">My Library</span>
+            <span class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Menu</span>
             {extraMenu.map((item) => (
               <a 
                 href={item.href} 
@@ -100,15 +99,6 @@ const isActive = (path: string) => pathname === path || pathname.startsWith(path
                 {item.name}
               </a>
             ))}
-          </div>
-
-          <div class="sm:hidden flex flex-col gap-2 p-3 border-t border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-900/30">
-            <button class="w-full px-4 py-2 text-sm font-bold text-white bg-primary-600 hover:bg-primary-500 rounded-xl shadow-sm transition-colors cursor-pointer">
-              Sign Up
-            </button>
-            <button class="w-full px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer">
-              Log In
-            </button>
           </div>
 
         </div>

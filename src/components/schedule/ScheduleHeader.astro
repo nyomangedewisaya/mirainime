@@ -4,33 +4,133 @@ import ThemeToggle from '../ui/ThemeToggle.astro';
 import logo from '../../assets/mirai.png';
 
 interface Props {
-  currentSeason: string;
-  currentYear: number;
+  currentSeason?: string;
+  currentYear?: number;
+  type?: 'anime' | 'donghua'; 
 }
-const { currentSeason, currentYear } = Astro.props;
+const { currentSeason, currentYear, type = 'anime' } = Astro.props;
 
 const seasons = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
+
+const extraMenu = [
+  { name: 'Home', href: '/anime', icon: 'lucide:home' },
+  { name: 'Favorites', href: '/favorites', icon: 'lucide:heart' },
+  { name: 'Top Characters', href: '/character/top', icon: 'lucide:users' },
+];
+
+const titleText = type === 'donghua' ? 'Donghua Schedule' : 'Weekly Schedule';
+const logoLink = type === 'donghua' ? '/donghua' : '/anime';
+
+const switchSchedule = type === 'anime' 
+  ? { name: 'Donghua Schedule', href: '/donghua/schedule', icon: 'lucide:monitor-play' }
+  : { name: 'Anime Schedule', href: '/anime/schedule', icon: 'lucide:tv' };
 ---
+
 <header class="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/50 dark:border-slate-800/50">
   <div class="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-4">
     
-    <a href="/anime" class="flex items-center shrink-0 group">
-      <img src={logo.src} alt="Mirai Logo" class="h-15 md:h-18 w-auto object-contain" />
+    <a href={logoLink} class="flex items-center shrink-0 group">
+      <div class="h-10 w-24 md:h-12 md:w-32 flex items-center justify-start shrink-0">
+        <img 
+          src={logo.src} 
+          alt="Mirai Logo" 
+          class="max-h-full max-w-full object-contain"
+          loading="eager" 
+          fetchpriority="high"
+        />
+      </div>
     </a>
 
-    <div class="flex items-center gap-3 md:gap-4">
-      <h1 class="hidden md:block text-lg font-bold text-slate-900 dark:text-white mr-2">Weekly Schedule</h1>
+    <div class="flex items-center gap-3 md:gap-4 flex-1 justify-center md:justify-start lg:justify-center">
+      <h1 class="hidden md:block text-lg font-bold text-slate-900 dark:text-white mr-2">{titleText}</h1>
       
-      <div class="relative">
-        <select id="season-selector" class="bg-slate-100 dark:bg-slate-800 border-none text-sm font-bold text-primary-600 dark:text-primary-400 rounded-xl py-2 pl-4 pr-10 focus:ring-2 focus:ring-primary-500/50 cursor-pointer appearance-none outline-none shadow-sm">
-          {seasons.map(s => (
-            <option value={s} selected={s === currentSeason}>{s} {currentYear}</option>
-          ))}
-        </select>
-        <Icon name="lucide:chevron-down" class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-primary-500 pointer-events-none" />
-      </div>
+      {type === 'anime' && (
+        <div class="relative group">
+          <select id="season-selector" class="bg-slate-100 dark:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 text-sm font-bold text-primary-600 dark:text-primary-400 rounded-xl py-2 pl-4 pr-10 focus:ring-2 focus:ring-primary-500/50 cursor-pointer appearance-none outline-none shadow-sm transition-all">
+            {seasons.map(s => (
+              <option value={s} selected={s === currentSeason}>{s} {currentYear}</option>
+            ))}
+          </select>
+          <Icon name="lucide:chevron-down" class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-primary-500 pointer-events-none group-hover:translate-y-[-40%] transition-transform" />
+        </div>
+      )}
     </div>
 
-    <ThemeToggle />
+    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+      <ThemeToggle />
+      <div class="relative" id="dropdown-wrapper">
+        <button id="btn-dropdown" class="p-2 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center focus:outline-none" aria-label="Open menu">
+          <Icon name="lucide:menu" class="w-6 h-6" />
+        </button>
+        <div id="popup-menu" class="absolute right-0 top-[calc(100%+0.5rem)] w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-black/50 border border-slate-200 dark:border-slate-700/50 opacity-0 invisible translate-y-2 scale-95 origin-top-right transition-all duration-200 ease-out flex flex-col overflow-hidden z-50">
+          
+          <div class="flex flex-col p-2 border-b border-slate-100 dark:border-slate-700/50">
+            <span class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Other Schedules</span>
+            <a 
+              href={switchSchedule.href} 
+              class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+            >
+              <Icon name={switchSchedule.icon} class="w-4 h-4 opacity-90" />
+              {switchSchedule.name}
+            </a>
+          </div>
+
+          <div class="flex flex-col p-2">
+            <span class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Menu</span>
+            {extraMenu.map((item) => (
+              <a href={item.href} class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                <Icon name={item.icon} class="w-4 h-4 opacity-70" />
+                {item.name}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
+
+<script is:inline>
+  const initScheduleHeader = () => {
+    const wrapper = document.getElementById('dropdown-wrapper');
+    const btn = document.getElementById('btn-dropdown');
+    const menu = document.getElementById('popup-menu');
+
+    if (wrapper && btn && menu) {
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      
+      newBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); 
+        const isOpen = !menu.classList.contains('invisible');
+        if (isOpen) {
+          menu.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+          menu.classList.add('opacity-0', 'invisible', 'translate-y-2', 'scale-95');
+        } else {
+          menu.classList.remove('opacity-0', 'invisible', 'translate-y-2', 'scale-95');
+          menu.classList.add('opacity-100', 'translate-y-0', 'scale-100');
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!wrapper.contains(e.target)) {
+          menu.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+          menu.classList.add('opacity-0', 'invisible', 'translate-y-2', 'scale-95');
+        }
+      });
+    }
+
+    const seasonSelector = document.getElementById('season-selector');
+    if (seasonSelector) {
+      seasonSelector.addEventListener('change', (e) => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('season', e.target.value);
+        url.searchParams.delete('page'); 
+        window.location.assign(url.toString());
+      });
+    }
+  };
+
+  initScheduleHeader();
+  document.addEventListener('astro:after-swap', initScheduleHeader);
+</script>

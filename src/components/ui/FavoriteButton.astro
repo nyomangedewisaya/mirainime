@@ -1,0 +1,126 @@
+---
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  id: string | number;
+  type: 'anime' | 'aeni' | 'donghua' | 'manga' | 'manhwa' | 'manhua' | 'novel' | 'character' | 'seiyuu';
+  title: string;
+  image: string;
+  slug: string;
+}
+
+const { id, type, title, image, slug } = Astro.props;
+const itemData = JSON.stringify({ id, type, title, image, slug });
+---
+
+<style>
+  @keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.25); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  
+  @keyframes popOut {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(0.5); opacity: 0; }
+  }
+
+  @keyframes ripple {
+    0% { transform: scale(0.5); opacity: 1; border-width: 6px; }
+    100% { transform: scale(1.5); opacity: 0; border-width: 0px; }
+  }
+
+  .animate-popIn { animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+  .animate-popOut { animation: popOut 0.2s ease-in forwards; }
+  .animate-ripple { animation: ripple 0.4s ease-out forwards; }
+</style>
+
+<button 
+  class="fav-toggle-btn relative flex items-center justify-center p-3 mb-3 rounded-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-slate-700/80 shadow-sm transition-all duration-300 group cursor-pointer focus:outline-none overflow-visible active:scale-95"
+  data-item={itemData}
+  aria-label="Toggle Favorite"
+>
+  <div class="fav-splash absolute w-10 h-10 rounded-full border-rose-500 opacity-0 pointer-events-none scale-0"></div>
+
+  <Icon 
+    name="lucide:heart" 
+    class="fav-outline w-6 h-6 text-slate-400 group-hover:text-rose-500 transition-all duration-300 absolute" 
+  />
+  
+  <Icon 
+    name="lucide:heart" 
+    class="fav-filled w-6 h-6 text-rose-500 opacity-0 scale-50 absolute drop-shadow-[0_0_8px_rgba(244,63,94,0.5)]" 
+    style="fill: currentColor;"
+  />
+  
+  <div class="w-6 h-6 opacity-0 pointer-events-none"></div> 
+</button>
+
+<script>
+  import { isFavorite, toggleFavorite } from '../../lib/favorites.js';
+
+  const initFavBtn = () => {
+    document.querySelectorAll('.fav-toggle-btn').forEach((btn: any) => {
+      const dataStr = btn.getAttribute('data-item');
+      if (!dataStr) return;
+      const itemData = JSON.parse(dataStr);
+
+      const outline = btn.querySelector('.fav-outline');
+      const filled = btn.querySelector('.fav-filled');
+      const splash = btn.querySelector('.fav-splash');
+
+      const updateUI = (isFav: boolean, animate = false) => {
+        if (isFav) {
+          btn.classList.add('bg-rose-50', 'dark:bg-rose-500/10', 'border-rose-200', 'dark:border-rose-500/30', 'shadow-rose-500/10');
+          btn.classList.remove('bg-white/90', 'dark:bg-slate-800/90', 'border-slate-200/80', 'dark:border-slate-700/80', 'hover:border-rose-400', 'dark:hover:border-rose-500');
+
+          outline.classList.add('opacity-0', 'scale-50');
+          outline.classList.remove('opacity-100', 'scale-100');
+          
+          if (animate) {
+            filled.classList.remove('animate-popOut', 'opacity-0', 'scale-50');
+            filled.classList.add('animate-popIn');
+            
+            splash.classList.remove('animate-ripple');
+            void splash.offsetWidth; 
+            splash.classList.add('animate-ripple');
+          } else {
+            filled.classList.add('opacity-100', 'scale-100');
+            filled.classList.remove('opacity-0', 'scale-50');
+          }
+
+        } else {
+          btn.classList.remove('bg-rose-50', 'dark:bg-rose-500/10', 'border-rose-200', 'dark:border-rose-500/30', 'shadow-rose-500/10');
+          btn.classList.add('bg-white/90', 'dark:bg-slate-800/90', 'border-slate-200/80', 'dark:border-slate-700/80', 'hover:border-rose-400', 'dark:hover:border-rose-500');
+
+          outline.classList.remove('opacity-0', 'scale-50');
+          outline.classList.add('opacity-100', 'scale-100');
+
+          if (animate) {
+            filled.classList.remove('animate-popIn', 'opacity-100', 'scale-100');
+            filled.classList.add('animate-popOut');
+          } else {
+            filled.classList.remove('opacity-100', 'scale-100', 'animate-popIn');
+            filled.classList.add('opacity-0', 'scale-50');
+          }
+        }
+      };
+
+      updateUI(isFavorite(itemData.id, itemData.type));
+
+      btn.onclick = (e: Event) => {
+        e.preventDefault();
+        const newState = toggleFavorite(itemData);  
+        updateUI(newState, true); 
+      };
+
+      window.addEventListener('favoritesUpdated', () => {
+        updateUI(isFavorite(itemData.id, itemData.type));
+      });
+    });
+  };
+
+  initFavBtn();
+  document.addEventListener('astro:after-swap', initFavBtn);
+</script>

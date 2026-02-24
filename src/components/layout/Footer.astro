@@ -1,7 +1,32 @@
 ---
 import { Icon } from 'astro-icon/components';
+import logo from '../../assets/mirai.png'; 
 
 const currentYear = new Date().getFullYear();
+
+const exploreLinks = [
+  { name: 'Anime', href: '/anime' },
+  { name: 'Donghua', href: '/donghua' },
+  { name: 'Aeni', href: '/aeni' },
+  { name: 'Manga', href: '/manga' },
+  { name: 'Manhwa', href: '/manhwa' },
+  { name: 'Manhua', href: '/manhua' },
+  { name: 'Novel', href: '/novel' },
+];
+
+const discoverLinks = [
+  { name: 'Anime Schedule', href: '/anime/schedule' },
+  { name: 'Donghua Schedule', href: '/donghua/schedule' },
+  { name: 'Top Characters', href: '/character/top' },
+  { name: 'Favorites', href: '/favorites' },
+];
+
+const resourceLinks = [
+  { name: 'Anilist Website', href: 'https://anilist.co/' }, 
+  { name: 'Anilist API Docs', href: 'https://docs.anilist.co/' },   
+  { name: 'Genres & Tags', href: '#' },                   
+  { name: 'Studios & Publishers', href: '#' },          
+];
 ---
 
 <footer class="w-full bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200/60 dark:border-slate-800/60 mt-20 transition-colors duration-300">
@@ -13,32 +38,18 @@ const currentYear = new Date().getFullYear();
         <h4 class="text-xs font-bold tracking-wider uppercase text-slate-900 dark:text-slate-100 mb-6">
           Explore
         </h4>
-        <ul class="flex flex-col gap-3.5">
-          <li>
-            <a href="/anime" class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-all duration-300">
-              Anime
-            </a>
-          </li>
-          <li>
-            <a href="/manga" class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-all duration-300">
-              Manga
-            </a>
-          </li>
-          <li>
-            <a href="/manhwa" class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-all duration-300">
-              Manhwa
-            </a>
-          </li>
-          <li>
-            <a href="/manhua" class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-all duration-300">
-              Manhua
-            </a>
-          </li>
-          <li>
-            <a href="/novel" class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-all duration-300">
-              Novel
-            </a>
-          </li>
+        
+        <ul class="grid grid-cols-2 gap-x-4 gap-y-3.5">
+          {exploreLinks.map((link) => (
+            <li>
+              <a 
+                href={link.href} 
+                class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-transform duration-300"
+              >
+                {link.name}
+              </a>
+            </li>
+          ))}
         </ul>
       </div>
 
@@ -47,10 +58,13 @@ const currentYear = new Date().getFullYear();
           Discover
         </h4>
         <ul class="flex flex-col gap-3.5">
-          {['Trending Now', 'Top 100 Anime', 'Upcoming Season', 'Seasonal Anime'].map((item) => (
+          {discoverLinks.map((link) => (
             <li>
-              <a href="#" class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-all duration-300">
-                {item}
+              <a 
+                href={link.href} 
+                class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-transform duration-300"
+              >
+                {link.name}
               </a>
             </li>
           ))}
@@ -62,10 +76,13 @@ const currentYear = new Date().getFullYear();
           Resources
         </h4>
         <ul class="flex flex-col gap-3.5">
-          {['Airing Schedule', 'Anime Genres', 'Studios', 'Latest News'].map((item) => (
+          {resourceLinks.map((link) => (
             <li>
-              <a href="#" class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-all duration-300">
-                {item}
+              <a 
+                href={link.href} 
+                class="inline-block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:translate-x-1 transition-transform duration-300"
+              >
+                {link.name}
               </a>
             </li>
           ))}
@@ -92,9 +109,12 @@ const currentYear = new Date().getFullYear();
     <div class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-6">
       
       <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
-        <a href="/" class="flex items-center gap-2 font-bold text-lg tracking-tight text-slate-900 dark:text-white">
-          <span class="w-6 h-6 rounded bg-linear-to-br from-primary-500 to-indigo-600 text-white flex items-center justify-center text-[10px] font-black shadow-sm">M</span>
-          Mirai Nime
+        <a href="/anime" class="flex items-center shrink-0">
+          <img 
+            src={logo.src} 
+            alt="Mirai Logo" 
+            class="h-15 w-auto md:h-18 object-contain" 
+          />
         </a>
         <span class="hidden sm:block text-slate-300 dark:text-slate-700">|</span>
         <span class="text-sm text-slate-500 dark:text-slate-400">
@@ -103,14 +123,17 @@ const currentYear = new Date().getFullYear();
       </div>
 
       <div class="flex items-center gap-5">
-        <a href="#" aria-label="GitHub" class="text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:-translate-y-1 transition-all duration-300">
+        <a href="https://github.com/nyomangedewisaya" aria-label="GitHub" class="text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:-translate-y-1 transition-all duration-300">
           <Icon name="lucide:github" class="w-4 h-4 md:w-5 md:h-5" />
         </a>
-        <a href="#" aria-label="Twitter / X" class="text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:-translate-y-1 transition-all duration-300">
-          <Icon name="lucide:twitter" class="w-4 h-4 md:w-5 md:h-5" />
+        <a href="mailto:nyomangedeewisaya@gmail.com" aria-label="Gmail" class="text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:-translate-y-1 transition-all duration-300">
+          <Icon name="lucide:mail" class="w-4 h-4 md:w-5 md:h-5" />
         </a>
-        <a href="#" aria-label="Instagram" class="text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:-translate-y-1 transition-all duration-300">
+        <a href="https://www.instagram.com/mhmmdhdyy?igsh=M2t6MXQ4bzc1bTdz" aria-label="Instagram" class="text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:-translate-y-1 transition-all duration-300">
           <Icon name="lucide:instagram" class="w-4 h-4 md:w-5 md:h-5" />
+        </a>
+        <a href="https://wa.me/6285788773480" aria-label="WhatsApp" class="text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:-translate-y-1 transition-all duration-300">
+          <Icon name="lucide:message-circle" class="w-4 h-4 md:w-5 md:h-5" />
         </a>
       </div>
 

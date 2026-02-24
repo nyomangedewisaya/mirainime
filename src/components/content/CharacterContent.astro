@@ -1,8 +1,9 @@
 ---
 import { fetchFromAniList } from '../../lib/anilist';
 import { Icon } from 'astro-icon/components';
-import { formatDateOfBirth, parseAniListMarkdown } from '../../lib/utils';
+import { formatDateOfBirth, parseAniListMarkdown, slugify } from '../../lib/utils';
 import AnimeCard from '../cards/AnimeCard.astro';
+import FavoriteButton from '../ui/FavoriteButton.astro';
 
 interface Props {
   id: string;
@@ -61,12 +62,21 @@ const animeList = character.media?.edges?.map((edge: any) => edge.node) || [];
   <div class="flex flex-col md:flex-row gap-8 md:gap-12">
     
     <div class="flex md:hidden flex-col gap-3 w-full items-center text-center">
-      <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-        {character.name.full}
-      </h1>
+      <div class="flex items-center justify-center gap-3">
+        <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          {character.name.full}
+        </h1>
+        <FavoriteButton 
+          id={character.id} 
+          type="character" 
+          title={character.name.full} 
+          image={character.image?.large || ''} 
+          slug={slugify(character.name.full)} 
+        />
+      </div>
       <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-semibold border border-red-100 dark:border-red-800/30">
         <Icon name="lucide:heart" class="w-4 h-4 fill-current" />
-        <span>{character.favourites.toLocaleString()} Favorites</span>
+        <span>{character.favourites.toLocaleString()} Favorites (based Anilist)</span>
       </div>
     </div>
 
@@ -108,12 +118,21 @@ const animeList = character.media?.edges?.map((edge: any) => edge.node) || [];
     <div class="flex-1 flex flex-col items-center text-center md:items-start md:text-left gap-8">
       
       <div class="hidden md:flex flex-col gap-3 w-full items-center md:items-start">
-        <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-          {character.name.full}
-        </h1>
+        <div class="flex items-center justify-center gap-3">
+          <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            {character.name.full}
+          </h1>
+          <FavoriteButton 
+            id={character.id} 
+            type="character" 
+            title={character.name.full} 
+            image={character.image?.large || ''} 
+            slug={slugify(character.name.full)} 
+          />
+        </div>
         <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-semibold border border-red-100 dark:border-red-800/30">
           <Icon name="lucide:heart" class="w-4 h-4 fill-current" />
-          <span>{character.favourites.toLocaleString()} Favorites</span>
+          <span>{character.favourites.toLocaleString()} Favorites (based Anilist)</span>
         </div>
       </div>
 
@@ -136,7 +155,7 @@ const animeList = character.media?.edges?.map((edge: any) => edge.node) || [];
             {animeList.map((anime: any) => (
               <AnimeCard 
                 id={anime.id} 
-                title={anime.title.romaji || anime.title.english} 
+                title={anime.title.english || anime.title.romaji} 
                 image={anime.coverImage.large} 
               />
             ))}

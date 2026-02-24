@@ -1,9 +1,17 @@
 ---
 import { Icon } from 'astro-icon/components'; 
 import { stripHtml, formatRanking } from '../../lib/utils';
-const { anime } = Astro.props;
+import FavoriteButton from '../ui/FavoriteButton.astro';
+import { generateSlug } from '../../lib/utils';
 
-const title = anime.title.romaji || anime.title.english;
+interface Props {
+  anime: any;
+  type: 'anime' | 'aeni' | 'donghua' | 'manga' | 'manhwa' | 'manhua' | 'novel';
+}
+
+const { anime, type } = Astro.props;
+
+const title = anime.title.romaji || anime.title.english || anime.title.native;
 const description = stripHtml(anime.description);
 const rankings = anime.rankings?.filter((r: any) => r.type === 'RATED' || r.type === 'POPULAR').slice(0, 5) || [];
 ---
@@ -33,17 +41,30 @@ const rankings = anime.rankings?.filter((r: any) => r.type === 'RATED' || r.type
         <img src={anime.coverImage.extraLarge || anime.coverImage.large} alt={title} class="w-full h-auto object-cover aspect-2/3" />
       </div>
 
-      <div class="flex-1 flex flex-col items-center md:items-start text-center md:text-left relative z-10">
-        <h1 class="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight mb-2">
-          {title}
-        </h1>
+      <div class="flex-1 flex flex-col items-center md:items-start text-center md:text-left relative z-10 w-full">
+        
+        <div class="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-2">
+          <h1 class="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
+            {title}
+          </h1>
+          <div class="shrink-0 md:mt-1">
+            <FavoriteButton 
+              id={anime.id} 
+              type={type} 
+              title={title} 
+              image={anime.coverImage.large} 
+              slug={generateSlug(title)} 
+            />
+          </div>
+        </div>
+
         {anime.title.native && (
           <h2 class="text-lg md:text-xl font-medium text-slate-500 dark:text-slate-400 mb-4">
             {anime.title.native}
           </h2>
         )}
 
-        <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-6">
+        <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-6 mt-2">
           {anime.genres?.map((genre: string) => (
             <span class="px-3 py-1 bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider rounded-full shadow-sm border border-slate-100 dark:border-slate-700">
               {genre}

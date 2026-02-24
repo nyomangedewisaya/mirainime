@@ -1,0 +1,275 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import ScheduleHeader from '../../components/schedule/ScheduleHeader.astro';
+import ScheduleTabs from '../../components/schedule/ScheduleTabs.astro';
+import ScheduleTimezoneToggle from '../../components/schedule/ScheduleTimezoneToggle.astro';
+import { getDynamicSeasons } from '../../lib/utils';
+import { fetchFromAniList } from '../../lib/anilist';
+import { Icon } from 'astro-icon/components';
+import SkeletonSchedule from '../../components/skeleton/SkeletonSchedule.astro';
+
+const { currentSeason, currentYear } = getDynamicSeasons();
+const urlSeason = Astro.url.searchParams.get('season') || currentSeason;
+
+const SCHEDULE_QUERY = `
+  query ($season: MediaSeason, $seasonYear: Int) {
+    Page(page: 1, perPage: 100) {
+      media(season: $season, seasonYear: $seasonYear, status: RELEASING, type: ANIME, sort: POPULARITY_DESC) {
+        id
+        title { romaji english }
+        coverImage { large }
+        studios(isMain: true) { nodes { name } }
+        nextAiringEpisode { airingAt episode }
+      }
+    }
+  }
+`;
+
+const data = await fetchFromAniList({ 
+  query: SCHEDULE_QUERY, 
+  variables: { season: urlSeason, seasonYear: currentYear } 
+});
+
+const validAnime = data?.Page?.media?.filter((m: any) => m.nextAiringEpisode !== null) || [];
+---
+
+<AppLayout title="Weekly Anime Schedule">
+  <div class="font-inter bg-slate-50 dark:bg-dark-bg min-h-screen">
+    
+    <ScheduleHeader currentSeason={urlSeason} currentYear={currentYear} />
+    
+    <div class="relative w-full bg-white dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800/80 pt-6 pb-2 overflow-hidden">
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-32 bg-primary-500/5 dark:bg-primary-500/10 blur-[80px] rounded-full pointer-events-none"></div>
+
+      <div class="container mx-auto px-4 lg:px-8 max-w-5xl relative z-10 flex flex-col gap-6">
+        <ScheduleTimezoneToggle />
+        <ScheduleTabs />
+      </div>
+    </div>
+
+    <main class="container mx-auto px-4 lg:px-8 py-8 md:py-12 max-w-5xl flex flex-col gap-6 min-h-[50vh]">
+      
+      <div id="schedule-container" class="grid grid-cols-1 md:grid-cols-2 gap-5 transition-opacity duration-300">
+        {Array.from({ length: 6 }).map(() => <SkeletonSchedule />)}
+      </div>
+
+      <div id="empty-state" class="hidden flex-col items-center justify-center py-24 text-center fade-in-swap">
+        <div class="w-24 h-24 mb-6 rounded-full bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center border border-slate-200 dark:border-slate-700/50 shadow-inner">
+          <Icon name="lucide:calendar-x" class="w-10 h-10 text-slate-400" />
+        </div>
+        <h3 class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">No Releases Today</h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400 max-w-xs">Take a break, watch your backlog, or check other days for upcoming episodes.</p>
+      </div>
+
+    </main>
+  </div>
+
+  <script is:inline define:vars={{ animeData: validAnime }}>
+    window.RAW_SCHEDULE = animeData;
+  </script>
+
+  <template id="card-template">
+    <a href="#" class="card-link group relative flex gap-4 md:gap-5 p-4 bg-white dark:bg-slate-800/80 hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-xl hover:shadow-primary-500/10 hover:-translate-y-1.5 transition-all duration-300 overflow-hidden cursor-pointer rounded-2xl fade-in-swap">
+      
+      <div class="absolute -right-12 -top-12 w-32 h-32 bg-primary-500/5 rounded-full blur-2xl group-hover:bg-primary-500/15 transition-colors duration-500"></div>
+      
+      <div class="relative shrink-0">
+        <img class="card-img w-20 h-28 md:w-24 md:h-36 rounded-2xl object-cover bg-slate-100 dark:bg-slate-800 shadow-sm group-hover:shadow-md transition-shadow duration-300 z-10 relative" src="" alt="" loading="lazy">
+      </div>
+      
+      <div class="flex flex-col justify-center flex-1 min-w-0 py-1.5 z-10">
+        <span class="card-studio text-[10px] md:text-xs font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 mb-1.5 truncate"></span>
+        <h3 class="card-title font-extrabold tracking-tight text-slate-900 dark:text-white line-clamp-2 text-base md:text-lg leading-tight mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors"></h3>
+        
+        <div class="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-700/50 pt-3">
+          <div class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-900/50 rounded-lg text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200 border border-slate-200/50 dark:border-slate-700/50 shadow-sm shrink-0">
+            <span class="relative flex h-2 w-2 shrink-0">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
+            </span>
+            <svg class="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="card-time whitespace-nowrap"></span>
+          </div>
+          
+          <div class="px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 text-[10px] md:text-xs font-black uppercase tracking-widest rounded-lg border border-primary-100 dark:border-primary-800/30 shrink-0">
+            <span class="card-ep whitespace-nowrap"></span>
+          </div>
+        </div>
+      </div>
+    </a>
+  </template>
+
+  <template id="skeleton-template">
+    <div class="relative flex gap-4 md:gap-5 p-4 bg-white/60 dark:bg-slate-800/40 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden pointer-events-none fade-in-swap">
+      <div class="relative shrink-0 w-20 h-28 md:w-24 md:h-36 rounded-2xl shimmer-bg"></div>
+      <div class="flex flex-col justify-center flex-1 min-w-0 py-1.5 z-10">
+        <div class="w-16 h-3 shimmer-bg rounded-md mb-2"></div>
+        <div class="w-full h-5 md:h-6 shimmer-bg rounded-md mb-1.5"></div>
+        <div class="w-3/4 h-5 md:h-6 shimmer-bg rounded-md mb-3"></div>
+        <div class="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-700/50 pt-3">
+          <div class="w-20 h-7 shimmer-bg rounded-lg shrink-0"></div>
+          <div class="w-16 h-7 shimmer-bg rounded-lg shrink-0"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script is:inline>
+    const TIMEZONES = { 'JP': 'Asia/Tokyo', 'UK': 'Europe/London', 'ID': 'Asia/Jakarta' };
+    
+    let currentTz = 'ID';
+    let currentDay = '';
+    let groupedData = {};
+
+    const processData = () => {
+      const tzString = TIMEZONES[currentTz];
+      groupedData = { Monday:[], Tuesday:[], Wednesday:[], Thursday:[], Friday:[], Saturday:[], Sunday:[] };
+
+      window.RAW_SCHEDULE.forEach(anime => {
+        const date = new Date(anime.nextAiringEpisode.airingAt * 1000);
+        const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone: tzString }).format(date);
+        const timeString = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: tzString }).format(date);
+        
+        groupedData[dayName].push({ ...anime, localTime: timeString, rawTime: date.getTime() });
+      });
+
+      Object.keys(groupedData).forEach(day => groupedData[day].sort((a, b) => a.rawTime - b.rawTime));
+    };
+
+    const renderCards = () => {
+      const container = document.getElementById('schedule-container');
+      const emptyState = document.getElementById('empty-state');
+      const cardTemplate = document.getElementById('card-template');
+      const skeletonTemplate = document.getElementById('skeleton-template');
+      
+      container.innerHTML = '';
+      emptyState.classList.add('hidden');
+      emptyState.classList.remove('flex');
+      
+      for(let i=0; i<6; i++) {
+        container.appendChild(skeletonTemplate.content.cloneNode(true));
+      }
+
+      setTimeout(() => {
+        const todaysAnime = groupedData[currentDay] || [];
+        container.innerHTML = ''; 
+
+        if (todaysAnime.length === 0) {
+          emptyState.classList.remove('hidden');
+          emptyState.classList.add('flex');
+        } else {
+          todaysAnime.forEach(anime => {
+            const clone = cardTemplate.content.cloneNode(true);
+            const studio = anime.studios?.nodes?.[0]?.name || 'Unknown Studio';
+            const title = anime.title.romaji || anime.title.english;
+            const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+            
+            clone.querySelector('.card-link').href = `/anime/${anime.id}/${slug}`; 
+            clone.querySelector('.card-img').src = anime.coverImage.large;
+            clone.querySelector('.card-title').textContent = title;
+            clone.querySelector('.card-studio').textContent = studio;
+            clone.querySelector('.card-ep').textContent = `EP ${anime.nextAiringEpisode.episode}`;
+            clone.querySelector('.card-time').textContent = anime.localTime;
+            
+            container.appendChild(clone);
+          });
+        }
+      }, 100); 
+    };
+
+    const updateTabIndicator = () => {
+      const activeTab = document.querySelector(`.day-tab[data-day="${currentDay}"]`);
+      const indTab = document.getElementById('tab-indicator');
+      if (activeTab && indTab) {
+        indTab.style.width = `${activeTab.offsetWidth}px`;
+        indTab.style.height = `${activeTab.offsetHeight}px`;
+        indTab.style.left = `${activeTab.offsetLeft}px`;
+        indTab.style.top = `${activeTab.offsetTop}px`;
+      }
+    };
+
+    const updateActiveTab = () => {
+      document.querySelectorAll('.day-tab').forEach(tab => {
+        if (tab.dataset.day === currentDay) {
+          tab.classList.add('text-white', 'font-bold');
+          tab.classList.remove('text-slate-500', 'dark:text-slate-400', 'font-semibold', 'hover:text-slate-800', 'dark:hover:text-slate-200');
+        } else {
+          tab.classList.remove('text-white', 'font-bold');
+          tab.classList.add('text-slate-500', 'dark:text-slate-400', 'font-semibold', 'hover:text-slate-800', 'dark:hover:text-slate-200');
+        }
+      });
+      updateTabIndicator();
+    };
+
+    const setupTzButtons = () => {
+      document.querySelectorAll('.tz-btn').forEach(btn => {
+         if (btn.dataset.tz === currentTz) {
+           btn.className = `tz-btn px-4 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm`;
+         } else {
+           btn.className = `tz-btn px-4 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer text-slate-500 hover:text-slate-700 dark:hover:text-slate-300`;
+         }
+      });
+    };
+
+    const initSchedule = () => {
+      processData();
+
+      const localDay = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
+      
+      if (!groupedData[localDay] || groupedData[localDay].length === 0) {
+        const daysInOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        currentDay = daysInOrder.find(d => groupedData[d].length > 0) || 'Monday';
+      } else {
+        currentDay = localDay;
+      }
+      
+      setTimeout(() => {
+        updateActiveTab();
+        setupTzButtons();
+        window.addEventListener('resize', updateTabIndicator); 
+      }, 50);
+      
+      renderCards();
+
+      document.querySelectorAll('.day-tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+          if(currentDay === e.currentTarget.dataset.day) return;
+          currentDay = e.currentTarget.dataset.day;
+          updateActiveTab();
+          renderCards();
+        });
+      });
+
+      document.querySelectorAll('.tz-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const selectedTz = e.currentTarget.dataset.tz;
+          if (selectedTz === currentTz) return; 
+          
+          currentTz = selectedTz;
+          document.getElementById('tz-label').textContent = `All times shown in ${currentTz === 'JP' ? 'JST (JP)' : currentTz === 'UK' ? 'GMT/BST (UK)' : 'WIB (ID)'}`;
+          
+          setupTzButtons();
+          processData(); 
+          renderCards(); 
+        });
+      });
+
+      const seasonSelector = document.getElementById('season-selector');
+      if (seasonSelector) {
+        seasonSelector.addEventListener('change', (e) => {
+          const container = document.getElementById('schedule-container');
+          const skeletonTemplate = document.getElementById('skeleton-template');
+          container.innerHTML = '';
+          for(let i=0; i<6; i++) container.appendChild(skeletonTemplate.content.cloneNode(true));
+          
+          setTimeout(() => {
+            window.location.search = `?season=${e.target.value}`;
+          }, 50);
+        });
+      }
+    };
+
+    initSchedule();
+    document.addEventListener('astro:after-swap', initSchedule);
+  </script>
+</AppLayout>

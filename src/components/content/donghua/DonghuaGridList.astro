@@ -1,0 +1,62 @@
+---
+import DonghuaCard from '../../cards/DonghuaCard.astro';
+import { fetchFromAniList, LIST_QUERY } from '../../../lib/anilist';
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  variables: any;
+  currentUrl: string;
+}
+
+const { variables, currentUrl } = Astro.props;
+
+const data = await fetchFromAniList({ query: LIST_QUERY, variables });
+const donghuaList = data?.Page?.media || [];
+const pageInfo = data?.Page?.pageInfo;
+
+const page = variables.page || 1;
+
+const buildPageUrl = (newPage: number) => {
+  const url = new URL(currentUrl);
+  url.searchParams.set('page', newPage.toString());
+  return url.toString();
+};
+---
+
+<div class="flex flex-col gap-8 w-full fade-in-swap">
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+    {donghuaList.length > 0 ? (
+      donghuaList.map((donghua: any) => (
+        <DonghuaCard
+          id={donghua.id}
+          title={donghua.title.romaji || donghua.title.english}
+          image={donghua.coverImage.large}
+        />
+      ))
+    ) : (
+      <div class="col-span-full text-center py-20 text-slate-500 dark:text-slate-400">
+        No donghua found matching your filters.
+      </div>
+    )}
+  </div>
+
+  {pageInfo && (pageInfo.hasNextPage || page > 1) && (
+    <div class="flex items-center justify-center gap-2 mt-4">
+      {pageInfo.currentPage > 1 && (
+        <a href={buildPageUrl(pageInfo.currentPage - 1)} class="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors shadow-sm">
+          <Icon name="lucide:chevron-left" class="w-4 h-4" /> Prev
+        </a>
+      )}
+      
+      <span class="px-4 py-2.5 text-sm font-semibold text-slate-500 dark:text-slate-400">
+        Page {pageInfo.currentPage}
+      </span>
+
+      {pageInfo.hasNextPage && (
+        <a href={buildPageUrl(pageInfo.currentPage + 1)} class="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors shadow-sm">
+          Next <Icon name="lucide:chevron-right" class="w-4 h-4" />
+        </a>
+      )}
+    </div>
+  )}
+</div>

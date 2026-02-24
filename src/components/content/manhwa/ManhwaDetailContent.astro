@@ -1,0 +1,105 @@
+---
+import DetailHero from '../../detail/DetailHero.astro';
+import DetailInfoGrid from '../../detail/DetailInfoGrid.astro';
+import DetailTags from '../../detail/DetailTags.astro';
+import DetailCharacters from '../../detail/DetailCharacters.astro';
+import { fetchFromAniList } from '../../../lib/anilist';
+import DetailRelations from '../../detail/DetailRelations.astro';
+import DetailTrailer from '../../detail/DetailTrailer.astro';
+
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+
+const MANHWA_DETAIL_QUERY = `
+  query ($id: Int) {
+    Media(id: $id, type: MANGA) {
+      id
+      title { romaji english native }
+      synonyms
+      description(asHtml: false)
+      bannerImage
+      coverImage { extraLarge large medium }
+      genres
+      source
+      format
+      chapters
+      volumes
+      status
+      countryOfOrigin
+      startDate { year month day }
+      endDate { year month day }
+      averageScore
+      meanScore
+      popularity
+      favourites
+      rankings { rank type context year season allTime }
+      tags { name rank }
+      characters(sort: ROLE, perPage: 25) {
+        edges {
+          role
+          node { 
+            id   
+            name { full } 
+            image { medium } 
+          }
+        }
+      }
+      relations {
+        edges {
+          relationType
+          node {
+            id
+            type
+            format
+            status
+            countryOfOrigin
+            title { romaji english }
+            coverImage { large }
+          }
+        }
+      }
+      trailer {
+        id
+        site
+        thumbnail
+      }
+    }
+  }
+`;
+
+const data = await fetchFromAniList({ 
+  query: MANHWA_DETAIL_QUERY, 
+  variables: { id: parseInt(id, 10) } 
+});
+
+const manhwa = data?.Media;
+
+if (!manhwa) {
+  return Astro.redirect('/404');
+}
+---
+
+<div class="w-full flex flex-col fade-in-swap">
+  <DetailHero anime={manhwa} type="manhwa" />
+  
+  <DetailInfoGrid anime={manhwa} />
+  
+  {manhwa.tags && manhwa.tags.length > 0 && (
+    <DetailTags tags={manhwa.tags} />
+  )}
+  
+  {manhwa.relations && manhwa.relations.edges.length > 0 && (
+    <DetailRelations relations={manhwa.relations} />
+  )}
+  
+  {manhwa.characters && manhwa.characters.edges.length > 0 && (
+    <DetailCharacters characters={manhwa.characters} />
+  )}
+
+  {manhwa.trailer && manhwa.trailer.site === "youtube" && (
+    <DetailTrailer trailer={manhwa.trailer} />
+  )}
+</div>

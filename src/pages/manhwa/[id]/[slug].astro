@@ -1,0 +1,29 @@
+---
+export const prerender = false; 
+
+import AppLayout from '../../../layouts/AppLayout.astro';
+import Navbar from '../../../components/layout/Navbar.astro';
+import Footer from '../../../components/layout/Footer.astro';
+import SkeletonDetail from '../../../components/skeleton/SkeletonDetail.astro';
+import ManhwaDetailContent from '../../../components/content/manhwa/ManhwaDetailContent.astro';
+
+const { id } = Astro.params;
+---
+
+<AppLayout title="Manhwa Details">
+  <Navbar />
+  
+  <main class="w-full flex flex-col min-h-screen">
+    
+    <ManhwaDetailContent server:defer id={id as string}>
+      
+      <div slot="fallback" class="w-full">
+        <SkeletonDetail />
+      </div>
+
+    </ManhwaDetailContent>
+
+  </main>
+
+  <Footer />
+</AppLayout>

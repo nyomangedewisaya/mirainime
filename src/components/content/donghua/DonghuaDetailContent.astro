@@ -1,0 +1,111 @@
+---
+import DetailHero from '../../detail/DetailHero.astro';
+import DetailInfoGrid from '../../detail/DetailInfoGrid.astro';
+import DetailTags from '../../detail/DetailTags.astro';
+import DetailCharacters from '../../detail/DetailCharacters.astro';
+import { fetchFromAniList } from '../../../lib/anilist';
+import DetailRelations from '../../detail/DetailRelations.astro';
+import DetailTrailer from '../../detail/DetailTrailer.astro';
+
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+
+const DONGHUA_DETAIL_QUERY = `
+  query ($id: Int) {
+    Media(id: $id, type: ANIME) {
+      id
+      title { romaji english native }
+      description(asHtml: false)
+      bannerImage
+      coverImage { extraLarge large medium }
+      genres
+      source
+      format
+      episodes
+      duration
+      status
+      startDate { year month day }
+      endDate { year month day }
+      season
+      seasonYear
+      averageScore
+      meanScore
+      popularity
+      favourites
+      rankings { rank type context year season allTime }
+      studios { edges { isMain node { name } } }
+      tags { name rank }
+      nextAiringEpisode { episode timeUntilAiring }
+      characters(sort: ROLE) {
+        edges {
+          role
+          node { 
+            id   
+            name { full } 
+            image { medium } 
+          }
+          voiceActors(language: JAPANESE) { 
+            id   
+            name { full } 
+            image { medium } 
+          }
+        }
+      }
+      relations {
+        edges {
+          relationType
+          node {
+            id
+            type
+            format
+            status
+            countryOfOrigin
+            title { romaji english }
+            coverImage { large }
+          }
+        }
+      }
+      trailer {
+        id
+        site
+        thumbnail
+      }
+    }
+  }
+`;
+
+const data = await fetchFromAniList({ 
+  query: DONGHUA_DETAIL_QUERY, 
+  variables: { id: parseInt(id, 10) } 
+});
+
+const donghua = data?.Media;
+
+if (!donghua) {
+  return Astro.redirect('/404');
+}
+---
+
+<div class="w-full flex flex-col fade-in-swap">
+  <DetailHero anime={donghua} type="donghua" />
+  <DetailInfoGrid anime={donghua} />
+  
+  {donghua.tags && donghua.tags.length > 0 && (
+    <DetailTags tags={donghua.tags} />
+  )}
+  
+  {donghua.relations && donghua.relations.edges.length > 0 && (
+    <DetailRelations relations={donghua.relations} />
+  )}
+  
+  {donghua.characters && donghua.characters.edges.length > 0 && (
+    <DetailCharacters characters={donghua.characters} />
+  )}
+
+  {donghua.trailer && donghua.trailer.site === "youtube" && (
+    <DetailTrailer trailer={donghua.trailer} />
+  )}
+</div>

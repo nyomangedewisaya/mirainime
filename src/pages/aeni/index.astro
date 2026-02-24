@@ -1,0 +1,62 @@
+---
+export const prerender = false;
+import AppLayout from '../../layouts/AppLayout.astro';
+import Navbar from '../../components/layout/Navbar.astro';
+import Footer from '../../components/layout/Footer.astro';
+import SkeletonCard from '../../components/skeleton/SkeletonCard.astro';
+import SkeletonRankingItem from '../../components/skeleton/SkeletonRankingItem.astro';
+import ExploreAeniContent from '../../components/content/aeni/ExploreAeniContent.astro';
+
+const variables = {};
+---
+
+<AppLayout>
+  <Navbar />
+  
+  <main class="container mx-auto px-4 lg:px-8 py-8 md:pb-12 md:pt-5">
+    <div class="mb-8">
+      <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-2">
+        Explore Aeni
+      </h1>
+      <p class="text-sm md:text-base text-slate-500 dark:text-slate-400">
+        Discover trending, popular aeni, and ranking list.
+      </p>
+    </div>
+
+    <ExploreAeniContent server:defer variables={variables}>
+      
+      <div slot="fallback" class="flex flex-col gap-16 w-full">
+        <section>
+          <div class="h-8 w-48 rounded-md shimmer-bg mb-6"></div>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+            {Array.from({ length: 10 }).map(() => <SkeletonCard />)}
+          </div>
+        </section>
+
+        <section>
+          <div class="h-8 w-56 rounded-md shimmer-bg mb-6"></div>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+            {Array.from({ length: 10 }).map(() => <SkeletonCard />)}
+          </div>
+        </section>
+
+        <section>
+          <div class="h-8 w-64 rounded-md shimmer-bg mb-6"></div>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+            {Array.from({ length: 10 }).map(() => <SkeletonCard />)}
+          </div>
+        </section>
+
+        <section>
+          <div class="h-8 w-72 rounded-md shimmer-bg mb-8 pb-4 border-b border-slate-200 dark:border-slate-800"></div>
+          <div class="flex flex-col gap-2">
+            {Array.from({ length: 10 }).map(() => <SkeletonRankingItem />)}
+          </div>
+        </section>
+      </div>
+
+    </ExploreAeniContent>
+
+  </main>
+  <Footer />
+</AppLayout>

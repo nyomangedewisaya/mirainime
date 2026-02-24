@@ -1,0 +1,297 @@
+---
+export const prerender = false;
+import AppLayout from '../layouts/AppLayout.astro';
+import Navbar from '../components/layout/Navbar.astro';
+import Footer from '../components/layout/Footer.astro';
+import { Icon } from 'astro-icon/components';
+import SkeletonCard from '../components/skeleton/SkeletonCard.astro';
+
+const tabs = ['Anime', 'Aeni', 'Donghua', 'Manga', 'Manhwa', 'Manhua', 'Novel', 'Character', 'Seiyuu'];
+---
+
+<AppLayout title="My Favorites - MiraiNime">
+  <Navbar />
+
+  <main class="min-h-screen bg-slate-50 dark:bg-dark-bg font-inter pb-20 relative">
+    
+    <section class="w-full bg-white dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800/80 pt-8 pb-4 relative overflow-hidden">
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-32 bg-rose-500/5 dark:bg-rose-500/10 blur-[80px] rounded-full pointer-events-none"></div>
+      
+      <div class="container mx-auto px-4 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+          <h1 class="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+            My Favorites
+          </h1>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1 text-center md:text-left">
+            Your personal collection of beloved series and characters.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div class="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 shadow-inner border border-slate-200/50 dark:border-slate-700/50">
+            Total: <span id="total-counter" class="text-blue-600 ml-1">0</span>
+          </div>
+          <button id="btn-clear-all" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl text-sm font-bold transition-all shadow-sm cursor-pointer focus:outline-none">
+            <Icon name="lucide:trash-2" class="w-4 h-4" />
+            Clear All
+          </button>
+        </div>
+      </div>
+
+      <div class="container mx-auto px-4 lg:px-8 mt-8">
+        <div class="w-full overflow-x-auto custom-scrollbar pb-2 -mb-2">
+          <div class="relative flex items-center gap-1 min-w-max p-1 bg-slate-100/80 dark:bg-slate-800/50 rounded-2xl w-max shadow-inner border border-slate-200/50 dark:border-slate-700/50">
+            <div id="fav-tab-indicator" class="absolute top-1 bottom-1 bg-white dark:bg-slate-700 rounded-xl shadow-sm transition-all duration-300 ease-out z-0"></div>
+            
+            {tabs.map((tab) => (
+              <button 
+                class="fav-tab relative z-10 px-5 py-2 rounded-xl text-sm font-bold transition-colors duration-200 cursor-pointer focus:outline-none flex items-center gap-2 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                data-type={tab.toLowerCase()}
+              >
+                {tab}
+                <span class="tab-counter text-[10px] px-1.5 py-0.5 rounded-md bg-slate-200/50 dark:bg-slate-600/50 text-slate-500 dark:text-slate-300 transition-colors">0</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="container mx-auto px-4 lg:px-8 py-8 md:py-10">
+      
+      <div id="skeleton-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 fade-in-swap">
+        {Array.from({ length: 12 }).map(() => <SkeletonCard />)}
+      </div>
+
+      <div id="favorites-grid" class="hidden grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 opacity-0 transition-opacity duration-300">
+        </div>
+
+      <div id="empty-state" class="hidden flex-col items-center justify-center py-20 text-center fade-in-swap">
+        <div class="w-24 h-24 mb-6 rounded-full bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center border border-slate-200 dark:border-slate-700/50 shadow-inner">
+          <Icon name="lucide:heart-crack" class="w-10 h-10 text-slate-400" />
+        </div>
+        <h3 class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">You haven't added any favorites yet.</h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400 max-w-sm">
+          Browse around and click the heart icon on any series or character to add them here!
+        </p>
+      </div>
+
+    </section>
+  </main>
+  <Footer />
+
+  <div id="clear-modal" class="fixed inset-0 z-100 hidden items-center justify-center pointer-events-none">
+    <div id="clear-modal-backdrop" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-auto cursor-pointer"></div>
+    <div id="clear-modal-panel" class="relative bg-white dark:bg-slate-900 w-[90%] max-w-md rounded-3xl shadow-2xl flex flex-col items-center text-center p-8 transform scale-95 opacity-0 transition-all duration-300 pointer-events-auto border border-slate-200 dark:border-slate-800">
+      <div class="w-20 h-20 rounded-full bg-rose-50 dark:bg-rose-500/20 border-8 border-rose-100 dark:border-rose-500/10 flex items-center justify-center mb-6">
+        <Icon name="lucide:trash-2" class="w-8 h-8 text-rose-500" />
+      </div>
+      <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">Clear All Favorites?</h3>
+      <p class="text-slate-500 dark:text-slate-400 text-sm md:text-base mb-8 px-2">
+        Are you absolutely sure you want to remove all items from your favorites? This action cannot be undone.
+      </p>
+      <div class="flex items-center justify-center gap-3 w-full">
+        <button id="btn-cancel-clear" class="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-colors focus:outline-none">
+          Cancel
+        </button>
+        <button id="btn-confirm-clear" class="flex-1 py-3 px-4 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-bold transition-all shadow-md shadow-rose-500/20 hover:shadow-rose-500/40 focus:outline-none">
+          Yes, Clear All
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <template id="fav-card-template">
+    <div class="relative group block fav-card-container aspect-3/4">
+      
+      <a href="#" class="item-link block w-full h-full relative rounded-2xl overflow-hidden bg-slate-200 dark:bg-dark-card cursor-pointer shadow-sm hover:shadow-xl hover:shadow-primary-500/20 transition-all duration-300 hover:-translate-y-1">
+        <img src="" alt="" class="item-img w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+        <div class="absolute inset-0 bg-linear-to-t from-slate-900/95 via-slate-900/30 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div class="absolute bottom-0 left-0 w-full p-4 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
+          <h3 class="item-title text-white font-semibold text-sm line-clamp-2 leading-snug drop-shadow-md"></h3>
+        </div>
+      </a>
+
+      <button class="btn-remove absolute top-2 right-2 z-10 p-1.5 bg-slate-900/60 hover:bg-rose-500 text-white rounded-lg backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-md cursor-pointer focus:outline-none -translate-y-1.25 group-hover:translate-y-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+    </div>
+  </template>
+
+  <script>
+    import { getFavorites, removeFavorite, clearAllFavorites, BUCKETS } from '../lib/favorites.js';
+
+    type BucketType = 'anime' | 'aeni' | 'donghua' | 'manga' | 'manhwa' | 'manhua' | 'novel' | 'character' | 'seiyuu';
+    type FavoritesData = Record<BucketType, any[]>;
+
+    let currentTab: BucketType = 'anime';
+
+    const renderFavorites = (showSkeleton = false) => {
+      const data = getFavorites() as FavoritesData;
+      const grid = document.getElementById('favorites-grid');
+      const skeleton = document.getElementById('skeleton-grid');
+      const emptyState = document.getElementById('empty-state');
+      const template = document.getElementById('fav-card-template') as HTMLTemplateElement;
+      
+      let total = 0;
+      (BUCKETS as BucketType[]).forEach((bucket) => {
+        const itemsArray = data[bucket] || [];
+        const count = itemsArray.length;
+        total += count;
+        
+        const tabBtn = document.querySelector(`.fav-tab[data-type="${bucket}"] .tab-counter`);
+        if (tabBtn) tabBtn.textContent = count.toString();
+      });
+      document.getElementById('total-counter')!.textContent = total.toString();
+
+      const items = data[currentTab] || [];
+      grid!.innerHTML = '';
+
+      if (showSkeleton) {
+        grid!.classList.add('hidden', 'opacity-0');
+        emptyState!.classList.add('hidden');
+        emptyState!.classList.remove('flex');
+        skeleton!.classList.remove('hidden');
+        skeleton!.classList.add('grid');
+      }
+
+      items.forEach((item: any) => {
+        const clone = template.content.cloneNode(true) as HTMLElement;
+        const container = clone.querySelector('.fav-card-container') as HTMLElement;
+        
+        const link = clone.querySelector('.item-link') as HTMLAnchorElement;
+        link.href = `/${item.type}/${item.id}/${item.slug}`;
+
+        const img = clone.querySelector('.item-img') as HTMLImageElement;
+        img.src = item.image;
+        img.alt = item.title;
+        
+        clone.querySelector('.item-title')!.textContent = item.title;
+
+        const removeBtn = clone.querySelector('.btn-remove') as HTMLButtonElement;
+        removeBtn.onclick = (e) => {
+          e.preventDefault();
+          container.style.transform = 'scale(0.9)';
+          container.style.opacity = '0';
+          setTimeout(() => {
+            removeFavorite(item.id, currentTab);
+            renderFavorites(false); 
+          }, 300);
+        };
+
+        grid!.appendChild(clone);
+      });
+
+      const finalizeRender = () => {
+        skeleton!.classList.add('hidden');
+        skeleton!.classList.remove('grid');
+
+        if (items.length === 0) {
+          emptyState!.classList.remove('hidden');
+          emptyState!.classList.add('flex');
+          grid!.classList.add('hidden');
+        } else {
+          emptyState!.classList.add('hidden');
+          emptyState!.classList.remove('flex');
+          grid!.classList.remove('hidden');
+          grid!.classList.add('grid');
+          setTimeout(() => {
+            grid!.classList.remove('opacity-0');
+          }, 50);
+        }
+      };
+
+      if (showSkeleton) {
+        setTimeout(finalizeRender, 500); 
+      } else {
+        finalizeRender();
+      }
+    };
+
+    const updateTabUI = () => {
+      const activeTab = document.querySelector(`.fav-tab[data-type="${currentTab}"]`) as HTMLElement;
+      const indicator = document.getElementById('fav-tab-indicator');
+      
+      if (activeTab && indicator) {
+        indicator.style.width = `${activeTab.offsetWidth}px`;
+        indicator.style.left = `${activeTab.offsetLeft}px`;
+        
+        document.querySelectorAll('.fav-tab').forEach(tab => {
+          if ((tab as HTMLElement).dataset.type === currentTab) {
+            tab.classList.add('text-slate-900', 'dark:text-white');
+            tab.classList.remove('text-slate-500', 'dark:text-slate-400');
+          } else {
+            tab.classList.remove('text-slate-900', 'dark:text-white');
+            tab.classList.add('text-slate-500', 'dark:text-slate-400');
+          }
+        });
+      }
+    };
+
+    const initFavPage = () => {
+      renderFavorites(true);
+      
+      setTimeout(() => {
+        updateTabUI();
+        window.addEventListener('resize', updateTabUI);
+      }, 50);
+
+      document.querySelectorAll('.fav-tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+          const target = e.currentTarget as HTMLElement;
+          if (currentTab === target.dataset.type) return;
+          
+          currentTab = target.dataset.type as BucketType;
+          updateTabUI();
+          
+          renderFavorites(true); 
+        });
+      });
+
+      const clearBtn = document.getElementById('btn-clear-all');
+      const clearModal = document.getElementById('clear-modal');
+      const clearBackdrop = document.getElementById('clear-modal-backdrop');
+      const clearPanel = document.getElementById('clear-modal-panel');
+      const btnCancelClear = document.getElementById('btn-cancel-clear');
+      const btnConfirmClear = document.getElementById('btn-confirm-clear');
+
+      const toggleClearModal = (show: boolean) => {
+        if (show) {
+          clearModal!.classList.remove('hidden');
+          clearModal!.classList.add('flex');
+          setTimeout(() => {
+            clearBackdrop!.classList.add('opacity-100');
+            clearPanel!.classList.remove('opacity-0', 'scale-95');
+            clearPanel!.classList.add('opacity-100', 'scale-100');
+          }, 10);
+        } else {
+          clearBackdrop!.classList.remove('opacity-100');
+          clearPanel!.classList.remove('opacity-100', 'scale-100');
+          clearPanel!.classList.add('opacity-0', 'scale-95');
+          setTimeout(() => {
+            clearModal!.classList.add('hidden');
+            clearModal!.classList.remove('flex');
+          }, 300);
+        }
+      };
+
+      if (clearBtn) clearBtn.onclick = () => toggleClearModal(true);
+      if (btnCancelClear) btnCancelClear.onclick = () => toggleClearModal(false);
+      if (clearBackdrop) clearBackdrop.onclick = () => toggleClearModal(false);
+
+      if (btnConfirmClear) {
+        btnConfirmClear.onclick = () => {
+          clearAllFavorites();
+          renderFavorites(false);
+          toggleClearModal(false);
+        };
+      }
+
+      window.addEventListener('favoritesUpdated', () => renderFavorites(false));
+    };
+
+    initFavPage();
+    document.addEventListener('astro:after-swap', initFavPage);
+  </script>
+</AppLayout>

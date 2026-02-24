@@ -1,0 +1,105 @@
+---
+import DetailHero from '../../detail/DetailHero.astro';
+import DetailInfoGrid from '../../detail/DetailInfoGrid.astro';
+import DetailTags from '../../detail/DetailTags.astro';
+import DetailCharacters from '../../detail/DetailCharacters.astro';
+import { fetchFromAniList } from '../../../lib/anilist';
+import DetailRelations from '../../detail/DetailRelations.astro';
+import DetailTrailer from '../../detail/DetailTrailer.astro';
+
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+
+const NOVEL_DETAIL_QUERY = `
+  query ($id: Int) {
+    Media(id: $id, type: MANGA) {
+      id
+      title { romaji english native }
+      synonyms
+      description(asHtml: false)
+      bannerImage
+      coverImage { extraLarge large medium }
+      genres
+      source
+      format
+      chapters
+      volumes
+      status
+      countryOfOrigin
+      startDate { year month day }
+      endDate { year month day }
+      averageScore
+      meanScore
+      popularity
+      favourites
+      rankings { rank type context year season allTime }
+      tags { name rank }
+      characters(sort: ROLE, perPage: 25) {
+        edges {
+          role
+          node { 
+            id   
+            name { full } 
+            image { medium } 
+          }
+        }
+      }
+      relations {
+        edges {
+          relationType
+          node {
+            id
+            type
+            format
+            status
+            countryOfOrigin
+            title { romaji english }
+            coverImage { large }
+          }
+        }
+      }
+      trailer {
+        id
+        site
+        thumbnail
+      }
+    }
+  }
+`;
+
+const data = await fetchFromAniList({ 
+  query: NOVEL_DETAIL_QUERY, 
+  variables: { id: parseInt(id, 10) } 
+});
+
+const novel = data?.Media;
+
+if (!novel) {
+  return Astro.redirect('/404');
+}
+---
+
+<div class="w-full flex flex-col fade-in-swap">
+  <DetailHero anime={novel} type="novel" />
+  
+  <DetailInfoGrid anime={novel} />
+  
+  {novel.tags && novel.tags.length > 0 && (
+    <DetailTags tags={novel.tags} />
+  )}
+  
+  {novel.relations && novel.relations.edges.length > 0 && (
+    <DetailRelations relations={novel.relations} />
+  )}
+  
+  {novel.characters && novel.characters.edges.length > 0 && (
+    <DetailCharacters characters={novel.characters} />
+  )}
+
+  {novel.trailer && novel.trailer.site === "youtube" && (
+    <DetailTrailer trailer={novel.trailer} />
+  )}
+</div>

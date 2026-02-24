@@ -4,12 +4,12 @@ export const prerender = false;
 import AppLayout from '../../layouts/AppLayout.astro';
 import Navbar from '../../components/layout/Navbar.astro';
 import Footer from '../../components/layout/Footer.astro';
-import FilterBar from '../../components/ui/FilterBar.astro';
 import { fetchFromAniList, LIST_QUERY } from '../../lib/anilist';
 import { Icon } from 'astro-icon/components';
 import ActiveFilters from '../../components/ui/ActiveFilters.astro';
 import SkeletonCard from '../../components/skeleton/SkeletonCard.astro';
 import AnimeGridList from '../../components/content/anime/AnimeGridList.astro';
+import AnimeFilterBar from '../../components/ui/AnimeFilterBar.astro';
 
 const searchParams = Astro.url.searchParams;
 const page = parseInt(searchParams.get('page') || '1', 10);
@@ -44,7 +44,7 @@ const data = await fetchFromAniList({ query: LIST_QUERY, variables });
 
 <AppLayout>
   <Navbar />
-  <FilterBar defaultStatus="NOT_YET_RELEASED" />
+  <AnimeFilterBar defaultStatus="NOT_YET_RELEASED" />
   <ActiveFilters defaultStatus="NOT_YET_RELEASED" />
 
   <main class="container mx-auto px-4 lg:px-8 md:pb-6 mb-20 min-h-[50vh]">

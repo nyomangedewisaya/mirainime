@@ -3,8 +3,38 @@ import { Icon } from 'astro-icon/components';
 import { getCachedFilters } from '../../lib/anilist';
 
 const filtersData = await getCachedFilters();
-const genres = filtersData?.genres?.filter((g: string) => g !== 'Hentai') || [];
-const tags = filtersData?.tags?.map((t: any) => t.name) || [];
+
+const excludedTerms = ['Hentai']; 
+const nsfwKeywords = [
+  'hentai', 'rape', 'anal', 'sex', 'tentacle', 'ahegao', 'mind break', 
+  'incest', 'defloration', 'masturbation', 'fellatio', 'paizuri', 'prostitution',
+  'nudity', 'gore', 'snuff', 'bdsm', 'armpits', 'bondage', 'boobjob', 'cervix', 'dilf', 
+  'erotic', 'chest', 'gangs', 'handjob', 'pulling', 'milf', 'breasts', 'pregnancy',
+  'rimjob', 'squirting', 'threesome', 'virginity' 
+];
+
+const genres = (filtersData?.genres || [])
+  .filter((g: string) => !excludedTerms.includes(g))
+  .sort((a: string, b: string) => a.localeCompare(b));
+
+const rawTags = (filtersData?.tags || [])
+  .filter((t: any) => {
+    if (t.isAdult === true) return false;
+    const tagName = (t.name || '').toLowerCase();
+    const isVulgar = nsfwKeywords.some(keyword => tagName.includes(keyword));
+    return !isVulgar; 
+  })
+  .map((t: any) => t.name)
+  .sort((a: string, b: string) => a.localeCompare(b));
+
+const groupedTags = rawTags.reduce((acc: any, tag: string) => {
+  const firstLetter = tag.charAt(0).toUpperCase();
+  if (!acc[firstLetter]) acc[firstLetter] = [];
+  acc[firstLetter].push(tag);
+  return acc;
+}, {});
+
+const sortedLetters = Object.keys(groupedTags).sort();
 
 const formats = ["MANGA", "ONE_SHOT"]; 
 const statuses = ["RELEASING", "FINISHED", "NOT_YET_RELEASED", "CANCELLED", "HIATUS"];
@@ -27,13 +57,6 @@ const pSort = searchParams.get('sort') || '';
 const pTags = searchParams.get('tags') ? searchParams.get('tags')!.split(',') : [];
 ---
 
-<style>
-  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-  .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
-  .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #334155; }
-</style>
-
 <div class="sticky top-16 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 transition-colors shadow-sm">
   <div class="container mx-auto px-4 lg:px-8">
     
@@ -51,7 +74,7 @@ const pTags = searchParams.get('tags') ? searchParams.get('tags')!.split(',') : 
         
         <div class="relative w-full lg:w-72 shrink-0 group">
           <Icon name="lucide:search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
-          <input type="text" id="filter-search" value={pSearch} placeholder="Search manga..." class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 rounded-xl py-2 pl-10 pr-4 text-sm text-slate-900 dark:text-white outline-none transition-all duration-300 shadow-sm" />
+          <input type="text" id="filter-search" value={pSearch} placeholder="Search..." class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 rounded-xl py-2 pl-10 pr-4 text-sm text-slate-900 dark:text-white outline-none transition-all duration-300 shadow-sm focus:outline-none" />
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full" id="top-dropdowns">
@@ -61,7 +84,7 @@ const pTags = searchParams.get('tags') ? searchParams.get('tags')!.split(',') : 
           <div id="wrapper-status" data-id="status" data-label="Any Status" data-options={JSON.stringify(statuses)} data-selected={pStatus}></div>
         </div>
 
-        <button id="btn-advanced" class="w-full lg:w-auto shrink-0 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-semibold transition-all shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 hover:border-primary-400 cursor-pointer">
+        <button id="btn-advanced" class="w-full lg:w-auto shrink-0 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-semibold transition-all shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 hover:border-primary-400 cursor-pointer focus:outline-none focus:ring-0">
           <Icon name="lucide:sliders-horizontal" class="w-4 h-4" />
           Advanced
         </button>
@@ -76,70 +99,88 @@ const pTags = searchParams.get('tags') ? searchParams.get('tags')!.split(',') : 
   
   <div id="modal-panel" class="relative bg-white dark:bg-slate-900 w-[95%] max-w-4xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col transform scale-95 opacity-0 transition-all duration-300 pointer-events-auto border border-slate-200 dark:border-slate-800 overflow-hidden">
     
-    <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/20">
+    <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/20 z-10">
       <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-        <Icon name="lucide:settings-2" class="w-5 h-5 text-primary-500" /> Advanced Manga Filters
+        <Icon name="lucide:settings-2" class="w-5 h-5 text-primary-500" /> Advanced Filters
       </h2>
-      <button id="btn-close-modal" class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer">
+      <button id="btn-close-modal" class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer focus:outline-none focus:ring-0">
         <Icon name="lucide:x" class="w-5 h-5" />
       </button>
     </div>
 
-    <div class="p-5 md:p-6 overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-8">
+    <div class="p-5 md:p-6 overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-10">
       
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="adv-dropdowns">
-        <div id="wrapper-sort" data-id="sort" data-label="Sort Results By" data-options={JSON.stringify(sorts)} data-labels={JSON.stringify(sortLabels)} data-selected={pSort}></div>
-        <div id="wrapper-source" data-id="source" data-label="Source Material" data-options={JSON.stringify(sources)} data-selected={pSource}></div>
-      </div>
+      <div class="flex flex-col gap-8">
+        
+        <div>
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Properties</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="adv-dropdowns">
+            <div id="wrapper-sort" data-id="sort" data-label="Sort Results By" data-options={JSON.stringify(sorts)} data-labels={JSON.stringify(sortLabels)} data-selected={pSort}></div>
+            <div id="wrapper-source" data-id="source" data-label="Source Material" data-options={JSON.stringify(sources)} data-selected={pSource}></div>
+          </div>
+        </div>
 
-      <div>
-        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Numeric Ranges</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div class="flex flex-col gap-2">
-            <label class="text-xs font-medium text-slate-600 dark:text-slate-400">Year Range</label>
-            <div class="flex items-center gap-2">
-              <input type="number" id="rng-year-min" placeholder="1990" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white" />
-              <span class="text-slate-400">-</span>
-              <input type="number" id="rng-year-max" placeholder={`${currentY + 1}`} class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white" />
+        <div>
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Numeric Ranges</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-medium text-slate-600 dark:text-slate-400">Year Range</label>
+              <div class="flex items-center gap-2">
+                <input type="number" id="rng-year-min" placeholder="1990" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white focus:ring-0" />
+                <span class="text-slate-400">-</span>
+                <input type="number" id="rng-year-max" placeholder={`${currentY + 1}`} class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white focus:ring-0" />
+              </div>
             </div>
-          </div>
-          <div class="flex flex-col gap-2">
-            <label class="text-xs font-medium text-slate-600 dark:text-slate-400">Chapters</label>
-            <div class="flex items-center gap-2">
-              <input type="number" id="rng-ch-min" placeholder="1" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white" />
-              <span class="text-slate-400">-</span>
-              <input type="number" id="rng-ch-max" placeholder="500" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white" />
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-medium text-slate-600 dark:text-slate-400">Chapters</label>
+              <div class="flex items-center gap-2">
+                <input type="number" id="rng-ch-min" placeholder="1" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white focus:ring-0" />
+                <span class="text-slate-400">-</span>
+                <input type="number" id="rng-ch-max" placeholder="500" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white focus:ring-0" />
+              </div>
             </div>
-          </div>
-          <div class="flex flex-col gap-2">
-            <label class="text-xs font-medium text-slate-600 dark:text-slate-400">Volumes</label>
-            <div class="flex items-center gap-2">
-              <input type="number" id="rng-vol-min" placeholder="1" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white" />
-              <span class="text-slate-400">-</span>
-              <input type="number" id="rng-vol-max" placeholder="50" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white" />
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-medium text-slate-600 dark:text-slate-400">Volumes</label>
+              <div class="flex items-center gap-2">
+                <input type="number" id="rng-vol-min" placeholder="1" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white focus:ring-0" />
+                <span class="text-slate-400">-</span>
+                <input type="number" id="rng-vol-max" placeholder="50" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary-500 outline-none text-slate-900 dark:text-white focus:ring-0" />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div>
-        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Advanced Tags</h3>
-        <div class="flex flex-wrap gap-2" id="tags-container" data-initial={pTags.join(',')}>
-          {tags.map((tag: string) => (
-            <button class="adv-tag px-3 py-1.5 rounded-full text-xs font-medium border transition-colors duration-200 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-primary-400 data-[active=true]:bg-primary-500 data-[active=true]:border-primary-500 data-[active=true]:text-white cursor-pointer" data-val={tag}>
-              {tag}
-            </button>
+      <hr class="border-slate-200 dark:border-slate-800" />
+
+      <div id="all-tags-wrapper" data-initial={pTags.join(',')}>
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-6">Advanced Tags</h3>
+        
+        <div class="flex flex-col gap-8">
+          {sortedLetters.map((letter: string) => (
+            <div class="flex flex-col gap-3">
+              <h4 class="text-sm font-bold text-slate-800 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700 pb-1">
+                {letter}
+              </h4>
+              <div class="flex flex-wrap gap-2">
+                {groupedTags[letter].map((tag: string) => (
+                  <button type="button" class="adv-tag px-3 py-1.5 rounded-full text-xs font-medium border transition-colors duration-200 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-primary-400 data-[active=true]:bg-primary-500 data-[active=true]:border-primary-500 data-[active=true]:text-white cursor-pointer focus:outline-none focus:ring-0" data-val={tag}>
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>
 
     </div>
 
-    <div class="p-5 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 bg-slate-50/50 dark:bg-slate-800/20">
-      <button id="btn-reset" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer">
+    <div class="p-5 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 bg-slate-50/50 dark:bg-slate-800/20 z-10">
+      <button id="btn-reset" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer focus:outline-none focus:ring-0">
         Reset
       </button>
-      <button id="btn-apply" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-primary-600 hover:bg-primary-500 shadow-md shadow-primary-500/20 transition-all cursor-pointer">
+      <button id="btn-apply" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-primary-600 hover:bg-primary-500 shadow-md shadow-primary-500/20 transition-all cursor-pointer focus:outline-none focus:ring-0">
         Apply Filters
       </button>
     </div>
@@ -202,13 +243,13 @@ const pTags = searchParams.get('tags') ? searchParams.get('tags')!.split(',') : 
 
       wrapper.innerHTML = `
         <div class="relative w-full custom-select-container" data-id="${id}" data-val="${selectedVal}">
-          <button class="select-btn w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:border-primary-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 dark:text-slate-200 font-medium flex justify-between items-center transition-all shadow-sm cursor-pointer">
+          <button type="button" class="select-btn w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:border-primary-400 focus:border-primary-500 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 dark:text-slate-200 font-medium flex justify-between items-center transition-all shadow-sm cursor-pointer focus:outline-none focus:ring-0">
             <span class="truncate pr-2">${selectedText}</span>
             <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
           <div class="select-dropdown absolute top-[calc(100%+0.5rem)] left-0 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 hidden flex-col overflow-hidden transform opacity-0 scale-95 transition-all duration-200 origin-top">
             <div class="p-2 border-b border-slate-100 dark:border-slate-700">
-              <input type="text" placeholder="Search..." class="search-opt w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 outline-none focus:border-primary-500" />
+              <input type="text" placeholder="Search..." class="search-opt w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 outline-none focus:border-primary-500 focus:ring-0" />
             </div>
             <ul class="max-h-48 overflow-y-auto custom-scrollbar p-1">
               <li class="opt-item px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg cursor-pointer transition-colors ${!selectedVal ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-semibold' : ''}" data-val="">${label} (Clear)</li>
@@ -327,9 +368,9 @@ const pTags = searchParams.get('tags') ? searchParams.get('tags')!.split(',') : 
     
     if (backdrop) backdrop.onclick = () => toggleModal(false);
 
-    const tagContainer = document.getElementById('tags-container');
-    if (tagContainer) {
-      let selectedTags = tagContainer.dataset.initial ? tagContainer.dataset.initial.split(',') : [];
+    const allTagsWrapper = document.getElementById('all-tags-wrapper');
+    if (allTagsWrapper) {
+      let selectedTags = allTagsWrapper.dataset.initial ? allTagsWrapper.dataset.initial.split(',') : [];
       document.querySelectorAll('.adv-tag').forEach(btn => {
         const val = btn.dataset.val;
         if (selectedTags.includes(val)) btn.setAttribute('data-active', 'true');

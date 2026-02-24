@@ -1,15 +1,25 @@
+---
+interface Props {
+  type?: 'anime' | 'donghua';
+}
+const { type = 'anime' } = Astro.props;
+
+const firstTz = type === 'donghua' ? 'CN' : 'JP';
+const firstLabel = type === 'donghua' ? '🇨🇳 CN' : '🇯🇵 JP';
+---
+
 <div class="flex flex-col md:flex-row items-center justify-between gap-4 w-full">
   <span class="text-xs font-semibold uppercase tracking-wider text-slate-400" id="tz-label">
     All times shown in WIB (ID)
   </span>
 
   <div class="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center shadow-inner">
-    {['JP', 'UK', 'ID'].map((tz, i) => (
+    {[firstTz, 'UK', 'ID'].map((tz, i) => (
       <button 
         class={`tz-btn px-4 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer ${i === 2 ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
         data-tz={tz}
       >
-        {tz === 'JP' ? '🇯🇵 JP' : tz === 'UK' ? '🇬🇧 UK' : '🇮🇩 ID'}
+        {tz === firstTz ? firstLabel : tz === 'UK' ? '🇬🇧 UK' : '🇮🇩 ID'}
       </button>
     ))}
   </div>

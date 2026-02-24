@@ -1,20 +1,17 @@
 ---
-import AppLayout from '../layouts/AppLayout.astro';
-import ScheduleHeader from '../components/schedule/ScheduleHeader.astro';
-import ScheduleTabs from '../components/schedule/ScheduleTabs.astro';
-import ScheduleTimezoneToggle from '../components/schedule/ScheduleTimezoneToggle.astro';
-import { getDynamicSeasons } from '../lib/utils';
-import { fetchFromAniList } from '../lib/anilist';
+import AppLayout from '../../layouts/AppLayout.astro';
+import ScheduleHeader from '../../components/schedule/ScheduleHeader.astro';
+import ScheduleTabs from '../../components/schedule/ScheduleTabs.astro';
+import ScheduleTimezoneToggle from '../../components/schedule/ScheduleTimezoneToggle.astro';
+import { fetchFromAniList } from '../../lib/anilist';
 import { Icon } from 'astro-icon/components';
-import SkeletonSchedule from '../components/skeleton/SkeletonSchedule.astro';
+import SkeletonSchedule from '../../components/skeleton/SkeletonSchedule.astro';
 
-const { currentSeason, currentYear } = getDynamicSeasons();
-const urlSeason = Astro.url.searchParams.get('season') || currentSeason;
-
+// KUNCI: countryOfOrigin: "CN"
 const SCHEDULE_QUERY = `
-  query ($season: MediaSeason, $seasonYear: Int) {
+  query {
     Page(page: 1, perPage: 100) {
-      media(season: $season, seasonYear: $seasonYear, status: RELEASING, type: ANIME, sort: POPULARITY_DESC) {
+      media(status: RELEASING, type: ANIME, countryOfOrigin: "CN", sort: POPULARITY_DESC) {
         id
         title { romaji english }
         coverImage { large }
@@ -25,24 +22,20 @@ const SCHEDULE_QUERY = `
   }
 `;
 
-const data = await fetchFromAniList({ 
-  query: SCHEDULE_QUERY, 
-  variables: { season: urlSeason, seasonYear: currentYear } 
-});
-
+const data = await fetchFromAniList({ query: SCHEDULE_QUERY });
 const validAnime = data?.Page?.media?.filter((m: any) => m.nextAiringEpisode !== null) || [];
 ---
 
-<AppLayout title="Weekly Anime Schedule">
+<AppLayout title="Weekly Donghua Schedule">
   <div class="font-inter bg-slate-50 dark:bg-dark-bg min-h-screen">
     
-    <ScheduleHeader currentSeason={urlSeason} currentYear={currentYear} />
+    <ScheduleHeader type="donghua" />
     
     <div class="relative w-full bg-white dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800/80 pt-6 pb-2 overflow-hidden">
       <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-32 bg-primary-500/5 dark:bg-primary-500/10 blur-[80px] rounded-full pointer-events-none"></div>
 
       <div class="container mx-auto px-4 lg:px-8 max-w-5xl relative z-10 flex flex-col gap-6">
-        <ScheduleTimezoneToggle />
+        <ScheduleTimezoneToggle type="donghua" />
         <ScheduleTabs />
       </div>
     </div>
@@ -66,6 +59,7 @@ const validAnime = data?.Page?.media?.filter((m: any) => m.nextAiringEpisode !==
 
   <script is:inline define:vars={{ animeData: validAnime }}>
     window.RAW_SCHEDULE = animeData;
+    window.PAGE_TYPE = 'donghua'; // Penanda URL
   </script>
 
   <template id="card-template">
@@ -115,7 +109,8 @@ const validAnime = data?.Page?.media?.filter((m: any) => m.nextAiringEpisode !==
   </template>
 
   <script is:inline>
-    const TIMEZONES = { 'JP': 'Asia/Tokyo', 'UK': 'Europe/London', 'ID': 'Asia/Jakarta' };
+    // CN Menggunakan Timezone Beijing/Shanghai (UTC+8)
+    const TIMEZONES = { 'JP': 'Asia/Tokyo', 'CN': 'Asia/Shanghai', 'UK': 'Europe/London', 'ID': 'Asia/Jakarta' };
     
     let currentTz = 'ID';
     let currentDay = '';
@@ -161,10 +156,13 @@ const validAnime = data?.Page?.media?.filter((m: any) => m.nextAiringEpisode !==
           todaysAnime.forEach(anime => {
             const clone = cardTemplate.content.cloneNode(true);
             const studio = anime.studios?.nodes?.[0]?.name || 'Unknown Studio';
-            const title = anime.title.romaji || anime.title.english;
+            const title = anime.title.english || anime.title.romaji;
             const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
             
-            clone.querySelector('.card-link').href = `/anime/${anime.id}/${slug}`; 
+            // Dinamis me-render URL berdasarkan tipe
+            const baseUrl = window.PAGE_TYPE === 'donghua' ? '/donghua' : '/anime';
+            clone.querySelector('.card-link').href = `${baseUrl}/${anime.id}/${slug}`; 
+            
             clone.querySelector('.card-img').src = anime.coverImage.large;
             clone.querySelector('.card-title').textContent = title;
             clone.querySelector('.card-studio').textContent = studio;
@@ -246,27 +244,14 @@ const validAnime = data?.Page?.media?.filter((m: any) => m.nextAiringEpisode !==
           if (selectedTz === currentTz) return; 
           
           currentTz = selectedTz;
-          document.getElementById('tz-label').textContent = `All times shown in ${currentTz === 'JP' ? 'JST (JP)' : currentTz === 'UK' ? 'GMT/BST (UK)' : 'WIB (ID)'}`;
+          const tzName = currentTz === 'JP' ? 'JST (JP)' : currentTz === 'CN' ? 'CST (CN)' : currentTz === 'UK' ? 'GMT/BST (UK)' : 'WIB (ID)';
+          document.getElementById('tz-label').textContent = `All times shown in ${tzName}`;
           
           setupTzButtons();
           processData(); 
           renderCards(); 
         });
       });
-
-      const seasonSelector = document.getElementById('season-selector');
-      if (seasonSelector) {
-        seasonSelector.addEventListener('change', (e) => {
-          const container = document.getElementById('schedule-container');
-          const skeletonTemplate = document.getElementById('skeleton-template');
-          container.innerHTML = '';
-          for(let i=0; i<6; i++) container.appendChild(skeletonTemplate.content.cloneNode(true));
-          
-          setTimeout(() => {
-            window.location.search = `?season=${e.target.value}`;
-          }, 50);
-        });
-      }
     };
 
     initSchedule();

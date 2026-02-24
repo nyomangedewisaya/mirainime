@@ -1,0 +1,302 @@
+---
+export const prerender = false;
+import AppLayout from '../../layouts/AppLayout.astro';
+import Navbar from '../../components/layout/Navbar.astro';
+import Footer from '../../components/layout/Footer.astro';
+import { fetchFromAniList } from '../../lib/anilist';
+
+const CHAR_QUERY = `
+  query {
+    page1: Page(page: 1, perPage: 100) {
+      characters(sort: FAVOURITES_DESC) { ...CharFragment }
+    }
+    page2: Page(page: 2, perPage: 100) {
+      characters(sort: FAVOURITES_DESC) { ...CharFragment }
+    }
+    page3: Page(page: 3, perPage: 100) {
+      characters(sort: FAVOURITES_DESC) { ...CharFragment }
+    }
+  }
+  
+  fragment CharFragment on Character {
+    id
+    name { full native }
+    image { large }
+    favourites
+    gender
+    media(page: 1, perPage: 2, type: ANIME, sort: POPULARITY_DESC) {
+      nodes {
+        title { english romaji }
+      }
+    }
+  }
+`;
+
+const data = await fetchFromAniList({ query: CHAR_QUERY });
+
+const characters = [
+  ...(data?.page1?.characters || []),
+  ...(data?.page2?.characters || []),
+  ...(data?.page3?.characters || [])
+];
+---
+
+<AppLayout title="Top Anime Characters - MiraiNime">
+  <Navbar />
+
+  <main class="min-h-screen bg-slate-50 dark:bg-dark-bg font-inter pb-20">
+    
+    <section class="w-full bg-white dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800/80 pt-10 pb-8 relative overflow-hidden">
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-40 bg-primary-500/5 dark:bg-primary-500/10 blur-[100px] rounded-full pointer-events-none"></div>
+      
+      <div class="container mx-auto px-4 lg:px-8 relative z-10 text-center">
+        <h1 class="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-3">
+          Top Anime Characters
+        </h1>
+        <p class="text-slate-500 dark:text-slate-400 text-sm md:text-base max-w-2xl mx-auto">
+          The most popular and beloved characters in anime history, ranked by the community (Anilist). 
+        </p>
+
+        <div class="flex items-center justify-center mt-8">
+          <div class="relative bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl flex items-center shadow-inner">
+            <div id="tab-indicator" class="absolute top-1.5 bottom-1.5 bg-white dark:bg-slate-700 rounded-xl shadow-sm transition-all duration-300 ease-out z-0"></div>
+            
+            {['All', 'Male', 'Female'].map((tab) => (
+              <button 
+                class="filter-tab relative z-10 px-6 py-2 rounded-xl text-sm font-bold transition-colors duration-200 cursor-pointer focus:outline-none [-webkit-tap-highlight-color:transparent]"
+                data-filter={tab}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="container mx-auto px-4 lg:px-8 py-10 max-w-6xl">
+      
+      <div id="skeleton-view" class="w-full flex flex-col gap-10">
+        <div class="flex items-end justify-center gap-4 md:gap-8 h-62.5 md:h-87.5">
+          <div class="w-24 md:w-40 h-48 md:h-64 rounded-t-2xl shimmer-bg"></div>
+          <div class="w-28 md:w-48 h-60 md:h-80 rounded-t-2xl shimmer-bg"></div>
+          <div class="w-24 md:w-40 h-44 md:h-56 rounded-t-2xl shimmer-bg"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+          {Array.from({ length: 8 }).map(() => (
+            <div class="flex gap-4 p-4 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 shimmer-bg h-32"></div>
+          ))}
+        </div>
+      </div>
+
+      <div id="real-content-view" class="w-full flex flex-col gap-12 hidden opacity-0 transition-opacity duration-500">
+        
+        <div id="top3-container" class="flex items-end justify-center gap-3 md:gap-6 pt-10">
+          </div>
+
+        <div id="list-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+          </div>
+
+      </div>
+
+    </section>
+  </main>
+  <Footer />
+
+  <script is:inline define:vars={{ charData: characters }}>
+    window.ALL_CHARACTERS = charData;
+  </script>
+
+  <template id="top3-template">
+    <div class="podium-card relative group flex flex-col items-center">
+      <div class="absolute -top-5 md:-top-7 z-20 flex flex-col items-center justify-center badge-container">
+        <div class="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-sm md:text-base font-black text-white shadow-lg rank-badge border-2 border-white/20 backdrop-blur-md"></div>
+      </div>
+      
+      <a href="#" class="char-link block relative rounded-t-2xl md:rounded-t-4xl overflow-hidden shadow-xl border-x border-t border-slate-200/50 dark:border-slate-700/50 group-hover:-translate-y-2 transition-transform duration-300 avatar-container">
+        <img src="" alt="" class="w-full h-full object-cover char-img bg-slate-200 dark:bg-slate-800" loading="lazy" />
+        <div class="absolute inset-0 bg-linear-to-t from-slate-900/90 via-slate-900/20 to-transparent"></div>
+        
+        <div class="absolute bottom-0 left-0 w-full p-3 md:p-5 text-center">
+          <h3 class="char-name text-white font-black text-sm md:text-lg leading-tight line-clamp-2 drop-shadow-md mb-1"></h3>
+          <div class="flex items-center justify-center gap-1.5 text-primary-400">
+            <svg class="w-3 h-3 md:w-4 md:h-4 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <span class="char-favs text-[10px] md:text-xs font-bold text-white tracking-wide"></span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </template>
+
+  <template id="list-card-template">
+    <a href="#" class="char-link group relative flex items-center gap-4 p-3 md:p-4 bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 shadow-sm hover:shadow-xl hover:border-primary-400 dark:hover:border-primary-500 hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer">
+      
+      <div class="absolute -right-10 -top-10 w-32 h-32 bg-primary-500/5 rounded-full blur-2xl group-hover:bg-primary-500/15 transition-colors duration-500"></div>
+      
+      <div class="w-8 md:w-10 shrink-0 text-center">
+        <span class="char-rank text-xl md:text-2xl font-black text-slate-300 dark:text-slate-600 group-hover:text-primary-500 transition-colors"></span>
+      </div>
+
+      <div class="w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-full overflow-hidden shadow-md border-2 border-transparent group-hover:border-primary-400 transition-colors">
+        <img src="" alt="" class="char-img w-full h-full object-cover bg-slate-200 dark:bg-slate-700" loading="lazy" />
+      </div>
+
+      <div class="flex flex-col justify-center flex-1 min-w-0">
+        <div class="flex items-center gap-2 mb-0.5">
+          <h3 class="char-name font-bold text-slate-900 dark:text-white text-sm md:text-base truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors"></h3>
+          <span class="char-gender hidden md:inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"></span>
+        </div>
+        <p class="char-native text-[10px] md:text-xs text-slate-400 dark:text-slate-500 truncate mb-2"></p>
+        
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1">
+            <svg class="w-3.5 h-3.5 text-primary-500 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <span class="char-favs text-xs font-bold text-slate-700 dark:text-slate-300"></span>
+          </div>
+          <div class="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+          <p class="char-media text-[10px] md:text-xs text-slate-500 dark:text-slate-400 truncate font-medium flex-1"></p>
+        </div>
+      </div>
+
+    </a>
+  </template>
+
+  <script is:inline>
+    let currentFilter = 'All';
+
+    const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
+    const slugify = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
+    const updateTabIndicator = () => {
+      const activeTab = document.querySelector(`.filter-tab[data-filter="${currentFilter}"]`);
+      const indicator = document.getElementById('tab-indicator');
+      if (activeTab && indicator) {
+        indicator.style.width = `${activeTab.offsetWidth}px`;
+        indicator.style.left = `${activeTab.offsetLeft}px`;
+        
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+          if (tab.dataset.filter === currentFilter) {
+            tab.classList.add('text-slate-900', 'dark:text-white');
+            tab.classList.remove('text-slate-500', 'hover:text-slate-800', 'dark:hover:text-slate-200');
+          } else {
+            tab.classList.remove('text-slate-900', 'dark:text-white');
+            tab.classList.add('text-slate-500', 'hover:text-slate-800', 'dark:hover:text-slate-200');
+          }
+        });
+      }
+    };
+
+    const renderData = () => {
+      const top3Container = document.getElementById('top3-container');
+      const listContainer = document.getElementById('list-container');
+      const top3Tpl = document.getElementById('top3-template');
+      const listTpl = document.getElementById('list-card-template');
+
+      top3Container.innerHTML = '';
+      listContainer.innerHTML = '';
+
+      let filtered = window.ALL_CHARACTERS;
+      if (currentFilter === 'Male') filtered = filtered.filter(c => c.gender === 'Male');
+      if (currentFilter === 'Female') filtered = filtered.filter(c => c.gender === 'Female');
+
+      filtered = filtered.slice(0, 100);
+
+      const top3 = filtered.slice(0, 3);
+      const restList = filtered.slice(3);
+
+      const order = [1, 0, 2]; 
+      const podiumStyles = [
+        { height: 'h-48 md:h-64', width: 'w-24 md:w-40', badgeColor: 'bg-slate-300 dark:bg-slate-400 text-slate-800' },
+        { height: 'h-60 md:h-80', width: 'w-28 md:w-48', badgeColor: 'bg-yellow-400 dark:bg-yellow-500 text-yellow-950', zIndex: 'z-10 -mx-2 md:-mx-4 shadow-2xl' }, 
+        { height: 'h-44 md:h-56', width: 'w-24 md:w-40', badgeColor: 'bg-amber-600 dark:bg-amber-700' } 
+      ];
+
+      order.forEach((idx, i) => {
+        const char = top3[idx];
+        if (!char) return;
+
+        const clone = top3Tpl.content.cloneNode(true);
+        const name = char.name.full;
+        const style = podiumStyles[i];
+
+        clone.querySelector('.char-link').href = `/character/${char.id}/${slugify(name)}`;
+        clone.querySelector('.char-img').src = char.image.large;
+        clone.querySelector('.char-name').textContent = name;
+        clone.querySelector('.char-favs').textContent = formatNumber(char.favourites);
+        
+        const badge = clone.querySelector('.rank-badge');
+        badge.textContent = `#${idx + 1}`;
+        badge.className += ` ${style.badgeColor}`;
+
+        const avatarCont = clone.querySelector('.avatar-container');
+        avatarCont.className += ` ${style.height} ${style.width} ${style.zIndex || ''}`;
+
+        top3Container.appendChild(clone);
+      });
+
+      restList.forEach((char, index) => {
+        const clone = listTpl.content.cloneNode(true);
+        const name = char.name.full;
+
+        clone.querySelector('.char-link').href = `/character/${char.id}/${slugify(name)}`;
+        clone.querySelector('.char-rank').textContent = `#${index + 4}`;
+        clone.querySelector('.char-img').src = char.image.large;
+        clone.querySelector('.char-name').textContent = name;
+        
+        if (char.name.native) {
+          clone.querySelector('.char-native').textContent = char.name.native;
+        }
+
+        if (char.gender) {
+          const gBadge = clone.querySelector('.char-gender');
+          gBadge.textContent = char.gender;
+          gBadge.classList.remove('hidden');
+        }
+
+        clone.querySelector('.char-favs').textContent = formatNumber(char.favourites);
+        
+        const mediaNodes = char.media?.nodes || [];
+        if (mediaNodes.length > 0) {
+          clone.querySelector('.char-media').textContent = mediaNodes.map(m => m.title.english || m.title.romaji).slice(0, 2).join(', ');
+        }
+
+        listContainer.appendChild(clone);
+      });
+    };
+
+    const initPage = () => {
+      const skeleton = document.getElementById('skeleton-view');
+      const realContent = document.getElementById('real-content-view');
+
+      updateTabIndicator();
+      renderData();
+
+      setTimeout(() => {
+        skeleton.style.display = 'none';
+        realContent.classList.remove('hidden');
+        setTimeout(() => realContent.classList.remove('opacity-0'), 50);
+      }, 500);
+
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+          const selected = e.currentTarget.dataset.filter;
+          if (selected === currentFilter) return;
+
+          currentFilter = selected;
+          updateTabIndicator();
+
+          realContent.classList.add('opacity-0');
+          setTimeout(() => {
+            renderData();
+            realContent.classList.remove('opacity-0');
+          }, 300);
+        });
+      });
+
+      window.addEventListener('resize', updateTabIndicator);
+    };
+
+    initPage();
+    document.addEventListener('astro:after-swap', initPage);
+  </script>
+</AppLayout>

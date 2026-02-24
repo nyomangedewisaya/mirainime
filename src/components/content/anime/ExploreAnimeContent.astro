@@ -12,7 +12,7 @@ const { variables } = Astro.props;
 const EXPLORE_QUERY = `
   query GetExploreData($currentSeason: MediaSeason, $currentYear: Int, $nextSeason: MediaSeason, $nextYear: Int) {
     trending: Page(page: 1, perPage: 10) {
-      media(sort: TRENDING_DESC, type: ANIME, isAdult: false) {
+      media(sort: TRENDING_DESC, type: ANIME, isAdult: false, countryOfOrigin: "JP") {
         id
         title { romaji }
         coverImage { large }

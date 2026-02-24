@@ -34,47 +34,59 @@ export async function fetchFromAniList({ query, variables = {} }: FetchAniListPa
 }
 
 export const LIST_QUERY = `
-  query GetMediaList(
-    $page: Int = 1, 
-    $perPage: Int = 24, 
+  query (
+    $page: Int, 
+    $perPage: Int, 
     $sort: [MediaSort], 
-    $status: MediaStatus, 
-    $season: MediaSeason, 
-    $seasonYear: Int, 
     $search: String, 
     $genre: String, 
-    $format: MediaFormat
+    $season: MediaSeason, 
+    $seasonYear: Int, 
+    $format: MediaFormat, 
+    $status: MediaStatus, 
+    $source: MediaSource, 
+    $countryOfOrigin: CountryCode, 
+    $episodes_greater: Int, 
+    $episodes_lesser: Int, 
+    $duration_greater: Int, 
+    $duration_lesser: Int, 
+    $startDate_greater: FuzzyDateInt, 
+    $startDate_lesser: FuzzyDateInt, 
+    $tag_in: [String]
   ) {
     Page(page: $page, perPage: $perPage) {
-      pageInfo {
-        currentPage
-        hasNextPage
-        lastPage
-      }
+      pageInfo { total currentPage lastPage hasNextPage }
       media(
         type: ANIME, 
-        isAdult: false,
         sort: $sort, 
-        status: $status, 
-        season: $season, 
-        seasonYear: $seasonYear, 
         search: $search, 
         genre: $genre, 
-        format: $format
+        season: $season, 
+        seasonYear: $seasonYear, 
+        format: $format, 
+        status: $status,        
+        source: $source,        
+        countryOfOrigin: $countryOfOrigin, 
+        episodes_greater: $episodes_greater, 
+        episodes_lesser: $episodes_lesser, 
+        duration_greater: $duration_greater, 
+        duration_lesser: $duration_lesser, 
+        startDate_greater: $startDate_greater, 
+        startDate_lesser: $startDate_lesser, 
+        tag_in: $tag_in, 
+        isAdult: false
       ) {
-        id
-        title { romaji english }
-        coverImage { large medium }
-        genres
-        format
-        episodes
-        duration
-        status
-        season
+        id 
+        title { romaji english } 
+        coverImage { large } 
+        format 
+        status 
+        episodes 
+        duration 
+        averageScore 
+        genres 
+        season 
         seasonYear
-        studios(isMain: true) {
-          nodes { name }
-        }
       }
     }
   }

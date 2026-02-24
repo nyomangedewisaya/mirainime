@@ -1,0 +1,157 @@
+---
+import AeniCard from '../../cards/AeniCard.astro';
+import RankingItem from '../../cards/RankingItem.astro';
+import { Icon } from 'astro-icon/components';
+import { fetchFromAniList } from '../../../lib/anilist';
+
+interface Props {
+  variables: any;
+}
+const { variables } = Astro.props;
+
+const EXPLORE_QUERY = `
+  query GetExploreAeni {
+    trending: Page(page: 1, perPage: 10) {
+      media(sort: TRENDING_DESC, type: ANIME, countryOfOrigin: "KR", isAdult: false) {
+        id title { romaji english } coverImage { large } format status episodes averageScore genres
+      }
+    }
+    
+    popularAiring: Page(page: 1, perPage: 10) {
+      media(sort: POPULARITY_DESC, type: ANIME, countryOfOrigin: "KR", status: RELEASING, isAdult: false) {
+        id title { romaji english } coverImage { large } format status episodes averageScore genres
+      }
+    }
+    
+    upcoming: Page(page: 1, perPage: 10) {
+      media(sort: POPULARITY_DESC, type: ANIME, countryOfOrigin: "KR", status: NOT_YET_RELEASED, isAdult: false) {
+        id title { romaji english } coverImage { large } format status episodes averageScore genres
+      }
+    }
+    
+    topRanking: Page(page: 1, perPage: 10) {
+      media(sort: SCORE_DESC, type: ANIME, countryOfOrigin: "KR", isAdult: false) {
+        id title { romaji english } coverImage { large } genres format episodes duration season seasonYear status
+        studios(isMain: true) { nodes { name } }
+      }
+    }
+  }
+`;
+const data = await fetchFromAniList({ query: EXPLORE_QUERY });
+
+const trendingAeni = data?.trending?.media || [];
+const popularAiringAeni = data?.popularAiring?.media || [];
+const upcomingAeni = data?.upcoming?.media || [];
+const topAeni = data?.topRanking?.media || [];
+
+const formatEpisodesInfo = (format: string, episodes: number, duration: number) => {
+  if (format === 'MOVIE') return duration ? `${duration} mins` : 'Unknown duration';
+  return episodes ? `${episodes} Episodes` : 'Unknown eps';
+};
+
+const formatFormatText = (format: string) => {
+  if (!format) return 'Unknown';
+  if (format === 'TV_SHORT') return 'TV Short';
+  return format.replace('_', ' ');
+};
+
+const formatSeasonText = (season: string, year: number) => {
+  if (!season || !year) return 'TBA';
+  return `${season.charAt(0) + season.slice(1).toLowerCase()} ${year}`;
+};
+
+const formatStatusText = (status: string) => {
+  if (!status) return 'Unknown';
+  if (status === 'NOT_YET_RELEASED') return 'Not Yet Released';
+  return status.charAt(0) + status.slice(1).toLowerCase();
+};
+
+const getTitle = (titleObj: any) => titleObj.english || titleObj.romaji;
+---
+
+<div class="flex flex-col gap-16 w-full fade-in-swap">
+  <section>
+    <div class="flex items-end justify-between mb-6">
+      <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <span class="w-1.5 h-6 bg-primary-500 rounded-full"></span> Trending Now
+      </h2>
+      <a href="/aeni/trending" class="text-md font-medium text-primary-500 hover:text-primary-600 transition-colors hover:underline">View All</a>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+      {trendingAeni.map((aeni: any) => (
+        <AeniCard
+          id={aeni.id}
+          title={getTitle(aeni.title)}
+          image={aeni.coverImage.large}
+        />
+      ))}
+    </div>
+  </section>
+
+  <section>
+    <div class="flex items-end justify-between mb-6">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <span class="w-1.5 h-6 bg-indigo-500 rounded-full"></span> Popular Airing Now
+        </h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 ml-3.5">
+          Top aeni that are currently releasing
+        </p>
+      </div>
+      <a href="/aeni/airing" class="text-md font-medium text-primary-500 hover:text-primary-600 transition-colors hover:underline">View All</a>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+      {popularAiringAeni.map((aeni: any) => (
+        <AeniCard
+          id={aeni.id}
+          title={getTitle(aeni.title)}
+          image={aeni.coverImage.large}
+        />
+      ))}
+    </div>
+  </section>
+
+  <section>
+    <div class="flex items-end justify-between mb-6">
+      <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <span class="w-1.5 h-6 bg-emerald-500 rounded-full"></span> Highly Anticipated
+      </h2>
+      <a href="/aeni/upcoming" class="text-md font-medium text-primary-500 hover:text-primary-600 transition-colors hover:underline">View All</a>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+      {upcomingAeni.map((aeni: any) => (
+        <AeniCard
+          id={aeni.id}
+          title={getTitle(aeni.title)}
+          image={aeni.coverImage.large}
+        />
+      ))}
+    </div>
+  </section>
+
+  <section class="mx-auto w-full">
+    <div class="flex items-end justify-between mb-8 pb-4 border-b border-slate-200 dark:border-slate-800">
+      <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <Icon name="lucide:trophy" class="w-6 h-6 text-primary-500" /> All-Time Top Ranking 100
+      </h2>
+      <a href="/aeni/top-100" class="text-md font-medium text-primary-500 transition-colors hover:underline">View All Ranking</a>
+    </div>
+    <div class="flex flex-col gap-2">
+      {topAeni.map((aeni: any, index: number) => (
+        <RankingItem
+          id={aeni.id}
+          rank={index + 1}
+          title={getTitle(aeni.title)}
+          image={aeni.coverImage.large}
+          genres={aeni.genres || []}
+          studio={aeni.studios?.nodes?.[0]?.name || 'Unknown Studio'}
+          format={formatFormatText(aeni.format)}
+          episodes={formatEpisodesInfo(aeni.format, aeni.episodes, aeni.duration)}
+          season={formatSeasonText(aeni.season, aeni.seasonYear)}
+          status={formatStatusText(aeni.status)}
+        />
+      ))}
+    </div>
+  </section>
+
+</div>

@@ -6,7 +6,7 @@ import Navbar from '../../components/layout/Navbar.astro';
 import Footer from '../../components/layout/Footer.astro';
 import { Icon } from 'astro-icon/components';
 import SkeletonRankingItem from '../../components/skeleton/SkeletonRankingItem.astro';
-import RankingList from '../../components/content/anime/RankingList.astro';
+import AnimeRankingList from '../../components/content/anime/AnimeRankingList.astro';
 
 const searchParams = Astro.url.searchParams;
 const page = parseInt(searchParams.get('page') || '1', 10);
@@ -27,7 +27,7 @@ const variables: any = {
   <Navbar />
 
   <main class="container mx-auto px-4 lg:px-8 md:pb-6 mb-20 min-h-[50vh]">
-    <a href="/explore"
+    <a href="/anime"
       class="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700/50 rounded-full transition-all duration-300 w-fit group shadow-sm cursor-pointer"
     >
       <Icon name="lucide:arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-300" />
@@ -42,13 +42,13 @@ const variables: any = {
       <p class="text-slate-500 dark:text-slate-400 mt-2 ml-4.5">Highest rated anime of all time.</p>
     </div>
 
-    <RankingList server:defer variables={variables} currentUrl={Astro.request.url}>
+    <AnimeRankingList server:defer variables={variables} currentUrl={Astro.request.url}>
       
       <div slot="fallback" class="flex flex-col gap-2 w-full">
         {Array.from({ length: 25 }).map(() => <SkeletonRankingItem />)}
       </div>
 
-    </RankingList>
+    </AnimeRankingList>
   </main>
 
   <Footer />
