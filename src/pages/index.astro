@@ -1,8 +1,7 @@
 ---
 import AppLayout from '../layouts/AppLayout.astro';
 import { Icon } from 'astro-icon/components';
-import { Image } from 'astro:assets';
-import miraiLogo from '../assets/mirai.png';
+import logo from '../../assets/mirai.png'; 
 
 const galleryImages = [
   "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx16498-73IhOXpJZiMF.jpg", 
@@ -32,7 +31,6 @@ const galleryImages = [
     perspective: 1500px;
   }
   
-  /* Penyesuaian rotasi 3D agar lebih ramah layar kecil di mobile */
   .gallery-grid {
     transform: rotateX(15deg) rotateZ(-1deg) scale(1.05) translateY(1rem);
     transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
@@ -61,8 +59,8 @@ const galleryImages = [
     <div class="mb-4 relative group">
       <div class="absolute inset-0 bg-primary-500/30 blur-xl md:blur-2xl rounded-full group-hover:bg-primary-500/50 transition-colors duration-500"></div>
       
-      <Image 
-        src={miraiLogo} 
+      <img 
+        src={logo.src} 
         alt="MiraiNime Logo" 
         width={200}
         height={200}
