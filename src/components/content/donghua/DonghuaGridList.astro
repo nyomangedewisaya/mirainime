@@ -5,21 +5,23 @@ import { Icon } from 'astro-icon/components';
 
 interface Props {
   variables: any;
-  currentUrl: string;
+  basePath: string;    
+  baseSearch: string;  
 }
 
-const { variables, currentUrl } = Astro.props;
+const { variables, basePath, baseSearch } = Astro.props;
 
 const data = await fetchFromAniList({ query: LIST_QUERY, variables });
 const donghuaList = data?.Page?.media || [];
 const pageInfo = data?.Page?.pageInfo;
-
 const page = variables.page || 1;
 
 const buildPageUrl = (newPage: number) => {
-  const url = new URL(currentUrl);
-  url.searchParams.set('page', newPage.toString());
-  return url.toString();
+  const params = new URLSearchParams(baseSearch);
+  
+  params.set('page', newPage.toString());
+  
+  return `${basePath}?${params.toString()}`;
 };
 ---
 

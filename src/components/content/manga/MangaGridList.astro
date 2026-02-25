@@ -5,10 +5,11 @@ import { Icon } from 'astro-icon/components';
 
 interface Props {
   variables: any;
-  currentUrl: string;
+  basePath: string;    
+  baseSearch: string;  
 }
 
-const { variables, currentUrl } = Astro.props;
+const { variables, basePath, baseSearch } = Astro.props;
 
 const MANGA_LIST_QUERY = `
   query ($page: Int, $perPage: Int, $sort: [MediaSort], $search: String, $genre: String, $status: MediaStatus, $source: MediaSource, $chapters_greater: Int, $chapters_lesser: Int, $volumes_greater: Int, $volumes_lesser: Int, $startDate_greater: FuzzyDateInt, $startDate_lesser: FuzzyDateInt, $tag_in: [String], $type: MediaType, $countryOfOrigin: CountryCode, $format: MediaFormat) {
@@ -25,10 +26,10 @@ const data = await fetchFromAniList({ query: MANGA_LIST_QUERY, variables });
 const mangas = data?.Page?.media || [];
 const pageInfo = data?.Page?.pageInfo;
 
-const urlObj = new URL(currentUrl);
 const createPageUrl = (newPage: number) => {
-  urlObj.searchParams.set('page', newPage.toString());
-  return urlObj.toString();
+  const params = new URLSearchParams(baseSearch);
+  params.set('page', newPage.toString());
+  return `${basePath}?${params.toString()}`;
 };
 ---
 

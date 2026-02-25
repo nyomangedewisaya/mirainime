@@ -7,7 +7,7 @@ import { fetchFromAniList } from '../../lib/anilist';
 import { Icon } from 'astro-icon/components';
 import SkeletonSchedule from '../../components/skeleton/SkeletonSchedule.astro';
 
-// KUNCI: countryOfOrigin: "CN"
+ countryOfOrigin: "CN"
 const SCHEDULE_QUERY = `
   query {
     Page(page: 1, perPage: 100) {
@@ -59,7 +59,7 @@ const validAnime = data?.Page?.media?.filter((m: any) => m.nextAiringEpisode !==
 
   <script is:inline define:vars={{ animeData: validAnime }}>
     window.RAW_SCHEDULE = animeData;
-    window.PAGE_TYPE = 'donghua'; // Penanda URL
+    window.PAGE_TYPE = 'donghua'; 
   </script>
 
   <template id="card-template">
@@ -109,7 +109,6 @@ const validAnime = data?.Page?.media?.filter((m: any) => m.nextAiringEpisode !==
   </template>
 
   <script is:inline>
-    // CN Menggunakan Timezone Beijing/Shanghai (UTC+8)
     const TIMEZONES = { 'JP': 'Asia/Tokyo', 'CN': 'Asia/Shanghai', 'UK': 'Europe/London', 'ID': 'Asia/Jakarta' };
     
     let currentTz = 'ID';
@@ -159,7 +158,6 @@ const validAnime = data?.Page?.media?.filter((m: any) => m.nextAiringEpisode !==
             const title = anime.title.english || anime.title.romaji;
             const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
             
-            // Dinamis me-render URL berdasarkan tipe
             const baseUrl = window.PAGE_TYPE === 'donghua' ? '/donghua' : '/anime';
             clone.querySelector('.card-link').href = `${baseUrl}/${anime.id}/${slug}`; 
             

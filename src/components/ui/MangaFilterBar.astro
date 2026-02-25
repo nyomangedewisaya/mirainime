@@ -276,7 +276,11 @@ const pTags = searchParams.get('tags') ? searchParams.get('tags')!.split(',') : 
           });
           dropdown.classList.remove('hidden');
           setTimeout(() => dropdown.classList.add('opacity-100', 'scale-100', 'flex'), 10);
-          search.focus();
+          
+          const isMobile = window.innerWidth < 1024 || ('ontouchstart' in window);
+          if (!isMobile) {
+            search.focus();
+          }
         } else {
           dropdown.classList.remove('opacity-100', 'scale-100');
           setTimeout(() => dropdown.classList.add('hidden'), 200);
@@ -332,7 +336,7 @@ const pTags = searchParams.get('tags') ? searchParams.get('tags')!.split(',') : 
     if (searchEl) {
       searchEl.addEventListener('input', (e) => {
         clearTimeout(window._searchTimeout);
-        window._searchTimeout = setTimeout(() => updateURL({ search: e.target.value }), 500);
+        window._searchTimeout = setTimeout(() => updateURL({ search: e.target.value }), 2000);
       });
     }
 

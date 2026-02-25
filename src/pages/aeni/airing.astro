@@ -4,21 +4,24 @@ export const prerender = false;
 import AppLayout from '../../layouts/AppLayout.astro';
 import Navbar from '../../components/layout/Navbar.astro';
 import Footer from '../../components/layout/Footer.astro';
-import DonghuaFilterBar from '../../components/ui/DonghuaFilterBar.astro';
+import AeniFilterBar from '../../components/ui/AeniFilterBar.astro'; 
 import { Icon } from 'astro-icon/components';
 import ActiveFilters from '../../components/ui/ActiveFilters.astro';
 import SkeletonCard from '../../components/skeleton/SkeletonCard.astro';
-import DonghuaGridList from '../../components/content/donghua/DonghuaGridList.astro';
+import AeniGridList from '../../components/content/aeni/AeniGridList.astro';
 
 const searchParams = Astro.url.searchParams;
 const page = parseInt(searchParams.get('page') || '1', 10);
 const getInt = (key: string) => searchParams.get(key) ? parseInt(searchParams.get(key)!) : undefined;
 
+const basePath = Astro.url.pathname;
+const baseSearch = Astro.url.search;
+
 const variables: any = {
   page: page,
   perPage: 24,
   type: 'ANIME', 
-  countryOfOrigin: 'CN', 
+  countryOfOrigin: 'KR', 
   
   search: searchParams.get('search') || undefined,
   genre: searchParams.get('genre') || undefined,
@@ -43,12 +46,12 @@ Object.keys(variables).forEach(key => variables[key] === undefined && delete var
 
 <AppLayout>
   <Navbar />
-  <DonghuaFilterBar defaultStatus="RELEASING" defaultSort="POPULARITY_DESC" />
+  <AeniFilterBar defaultStatus="RELEASING" defaultSort="POPULARITY_DESC" />
   <ActiveFilters />
 
   <main class="container mx-auto mt-4 px-4 lg:px-8 md:pb-6 mb-20 min-h-[50vh]">
     
-    <a href="/donghua"
+    <a href="/aeni"
       class="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700/50 rounded-full transition-all duration-300 w-fit group shadow-sm cursor-pointer"
     >
       <Icon name="lucide:arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-300" />
@@ -57,19 +60,24 @@ Object.keys(variables).forEach(key => variables[key] === undefined && delete var
 
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-        <span class="w-1.5 h-8 bg-indigo-500 rounded-full"></span>
-        Popular Airing Now
+        <span class="w-1.5 h-8 bg-blue-500 rounded-full"></span>
+        Popular Aeni Airing
       </h1>
-      <p class="text-slate-500 dark:text-slate-400 mt-2 ml-4.5">Top donghua that are currently releasing.</p>
+      <p class="text-slate-500 dark:text-slate-400 mt-2 ml-4.5">Top Korean animations currently releasing.</p>
     </div>
 
-    <DonghuaGridList server:defer variables={variables} currentUrl={Astro.request.url}>
+    <AeniGridList 
+        server:defer 
+        variables={variables} 
+        basePath={basePath} 
+        baseSearch={baseSearch}
+    >
       
       <div slot="fallback" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 w-full">
         {Array.from({ length: 24 }).map(() => <SkeletonCard />)}
       </div>
 
-    </DonghuaGridList>
+    </AeniGridList>
   </main>
 
   <Footer />

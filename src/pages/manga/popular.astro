@@ -14,6 +14,9 @@ const searchParams = Astro.url.searchParams;
 const page = parseInt(searchParams.get('page') || '1', 10);
 const getInt = (key: string) => searchParams.get(key) ? parseInt(searchParams.get(key)!) : undefined;
 
+const basePath = Astro.url.pathname;
+const baseSearch = Astro.url.search;
+
 const variables: any = {
   page: page,
   perPage: 24,
@@ -62,7 +65,12 @@ Object.keys(variables).forEach(key => variables[key] === undefined && delete var
       <p class="text-slate-500 dark:text-slate-400 mt-2 ml-4.5">The most highly favored manga of all time by the community.</p>
     </div>
 
-    <MangaGridList server:defer variables={variables} currentUrl={Astro.request.url}>
+    <MangaGridList 
+      server:defer 
+      variables={variables} 
+      basePath={basePath} 
+      baseSearch={baseSearch}
+    >
       <div slot="fallback" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 w-full">
         {Array.from({ length: 24 }).map(() => <SkeletonCard />)}
       </div>
