@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@astrojs/node": "^9.5.4",
+    "@astrojs/vercel": "^9.0.4",
     "@fontsource/inter": "^5.2.8",
     "@iconify-json/lucide": "^1.2.92",
     "@tailwindcss/vite": "^4.2.0",
